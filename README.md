@@ -69,6 +69,8 @@ You also need **Git** and **Node.js 22.12 or newer** to build.
 corepack enable
 ```
 
+If `corepack` isn't available, or you'd rather not enable it, run pnpm through npm instead: write `npx pnpm@10.33.0` wherever this guide says `pnpm`. Plain `npm install` doesn't work here, because the packages link to each other with pnpm's `workspace:` protocol.
+
 **2. Get the code:**
 
 ```bash
@@ -247,6 +249,8 @@ Claude Code and the browser run two more commands, `paceline statusline` and `pa
 2. When the extension needs data, the browser starts the helper through Native Messaging. There is no background process and no open port. The helper reads your session logs incrementally, so it stays fast, and returns per-session totals, tips and dashboard data.
 3. The extension refreshes every minute, updates the badge, and sends alerts and the weekly digest.
 
+If you moved Claude Code's settings with `CLAUDE_CONFIG_DIR`, run `install` with that variable set. The helper remembers the folder, because the browser starts it without your shell's environment.
+
 ## Privacy
 
 Paceline has no servers and collects nothing:
@@ -254,10 +258,6 @@ Paceline has no servers and collects nothing:
 - The optional claude.ai fallback talks only to claude.ai, with your own session.
 
 Full policy: [PRIVACY.md](PRIVACY.md).
-
-## Documentation
-
-The **[user guide](docs/guide.md)** explains every feature, every option, the alerts, the dashboard, the claude.ai fallback and troubleshooting in detail.
 
 ## Development
 

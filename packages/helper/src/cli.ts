@@ -1,5 +1,7 @@
 import { realpathSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { KNOWN_EXTENSION_IDS } from '@paceline/shared';
+import { readConfig } from './config';
 import { doctor, formatChecks } from './doctor';
 import { hostMain } from './host';
 import type { OS } from './install/browsers';
@@ -25,6 +27,16 @@ Called by Claude Code and the browser:
 
 const currentOs = (): OS => (process.platform === 'win32' ? 'win32' : process.platform === 'darwin' ? 'darwin' : 'linux');
 
+/**
+ * The browser starts `host` without the user's shell environment, so CLAUDE_CONFIG_DIR is
+ * saved at install and read back when the variable is missing. `install` trusts only the shell.
+ */
+function claudeConfigDir(cmd: string | undefined): string | undefined {
+  const fromEnv = process.env.CLAUDE_CONFIG_DIR || undefined;
+  if (fromEnv || cmd === 'install') return fromEnv;
+  return readConfig(resolvePaths())?.claudeDir;
+}
+
 function flagValues(args: string[], flag: string): string[] {
   const out: string[] = [];
   args.forEach((a, i) => {
@@ -36,7 +48,7 @@ function flagValues(args: string[], flag: string): string[] {
 
 async function main(argv: string[]): Promise<number> {
   const [cmd, ...rest] = argv;
-  const paths = resolvePaths();
+  const paths = resolvePaths(homedir(), claudeConfigDir(cmd));
   const os = currentOs();
 
   // Machine-facing commands first: they must never print anything extra.
@@ -69,7 +81,7 @@ async function main(argv: string[]): Promise<number> {
           ? `✓ Registered with ${r.browsers.join(', ')}`
           : '! No supported browser profile found (Chrome, Edge, Brave, Arc, Chromium). Install one, then run this again.',
       );
-      console.log(`✓ Status line ${r.statusLine === 'already' ? 'already set up' : 'added to ~/.claude/settings.json'}${r.chained ? ` (your previous one still runs: ${r.chained})` : ''}`);
+      console.log(`✓ Status line ${r.statusLine === 'already' ? 'already set up' : `added to ${paths.claudeSettings}`}${r.chained ? ` (your previous one still runs: ${r.chained})` : ''}`);
       if (r.backup) console.log(`  Backup of your settings: ${r.backup}`);
       const result = scan({
         paths,

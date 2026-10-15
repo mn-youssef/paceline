@@ -93,6 +93,7 @@ export function install(d: InstallDeps): InstallReport {
     previousStatusLine: previous,
     extensionIds: d.extensionIds,
     nodePath: d.nodePath,
+    claudeDir: d.env.CLAUDE_CONFIG_DIR || undefined,
   };
   writeJsonAtomic(paths.config, config);
 

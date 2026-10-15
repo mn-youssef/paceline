@@ -43,7 +43,7 @@ export function doctor(d: { paths: Paths; os: OS; env: Record<string, string | u
   add('browsers', registered.length > 0, registered.length ? `Registered for ${registered.join(', ')}` : 'No browser registration found');
 
   const ours = isOurStatusLine(readJson<{ statusLine?: unknown }>(paths.claudeSettings)?.statusLine);
-  add('statusline', ours, ours ? 'Installed in ~/.claude/settings.json' : 'The Paceline status line is not set; another tool may have replaced it. Run install again.');
+  add('statusline', ours, ours ? `Installed in ${paths.claudeSettings}` : 'The Paceline status line is not set; another tool may have replaced it. Run install again.');
 
   const live = readLive(paths);
   add(

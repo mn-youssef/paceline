@@ -15,6 +15,8 @@ export interface PacelineConfig {
   previousStatusLine: StatusLineSetting | null;
   extensionIds: string[];
   nodePath: string;
+  /** CLAUDE_CONFIG_DIR at install time; missing when it was not set. */
+  claudeDir?: string;
 }
 
 export function readConfig(paths: Paths): PacelineConfig | null {

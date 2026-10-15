@@ -19,8 +19,9 @@ export interface Paths {
   logs: string;
 }
 
-export function resolvePaths(home: string = homedir()): Paths {
-  const claudeDir = join(home, '.claude');
+/** `claudeConfigDir` is Claude Code's CLAUDE_CONFIG_DIR; it moves settings, projects and .claude.json. */
+export function resolvePaths(home: string = homedir(), claudeConfigDir?: string): Paths {
+  const claudeDir = claudeConfigDir ?? join(home, '.claude');
   const root = join(home, '.paceline');
   const cacheDir = join(root, 'cache');
   return {
@@ -28,7 +29,7 @@ export function resolvePaths(home: string = homedir()): Paths {
     claudeDir,
     projectsDir: join(claudeDir, 'projects'),
     claudeSettings: join(claudeDir, 'settings.json'),
-    claudeJson: join(home, '.claude.json'),
+    claudeJson: claudeConfigDir ? join(claudeConfigDir, '.claude.json') : join(home, '.claude.json'),
     root,
     bin: join(root, 'bin'),
     cjs: join(root, 'paceline.cjs'),

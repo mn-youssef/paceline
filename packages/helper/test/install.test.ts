@@ -114,6 +114,41 @@ describe('install', () => {
     expect(install({ ...deps, os: 'linux' }).browsers).toEqual(['Chrome']);
     expect(existsSync(join(home, '.config', 'google-chrome', 'NativeMessagingHosts', `${HOST_NAME}.json`))).toBe(true);
   });
+
+  it('records CLAUDE_CONFIG_DIR so the browser-launched host finds it', () => {
+    const { home, deps } = setup();
+    const dir = join(home, 'claude-work');
+    const paths = resolvePaths(home, dir);
+    install({ ...deps, paths, env: { CLAUDE_CONFIG_DIR: dir } });
+    expect(readConfig(paths)?.claudeDir).toBe(dir);
+    expect(json(join(dir, 'settings.json')).statusLine.command).toContain('statusline');
+  });
+
+  it('records no config dir when CLAUDE_CONFIG_DIR is unset', () => {
+    const { paths, deps } = setup();
+    install(deps);
+    expect(readConfig(paths)?.claudeDir).toBeUndefined();
+  });
+});
+
+describe('resolvePaths', () => {
+  it('uses ~/.claude and ~/.claude.json by default', () => {
+    expect(resolvePaths('/home/me')).toMatchObject({
+      claudeDir: '/home/me/.claude',
+      projectsDir: '/home/me/.claude/projects',
+      claudeJson: '/home/me/.claude.json',
+    });
+  });
+
+  it('moves everything into CLAUDE_CONFIG_DIR, but keeps its own files in ~/.paceline', () => {
+    expect(resolvePaths('/home/me', '/data/claude')).toMatchObject({
+      claudeDir: '/data/claude',
+      projectsDir: '/data/claude/projects',
+      claudeSettings: '/data/claude/settings.json',
+      claudeJson: '/data/claude/.claude.json',
+      root: '/home/me/.paceline',
+    });
+  });
 });
 
 describe('uninstall', () => {

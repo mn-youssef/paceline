@@ -1,0 +1,13 @@
+@import '../../src/ui/tokens.css';
+
+.options { max-width: 640px; margin: 0 auto; padding: 24px 16px 48px; display: flex; flex-direction: column; gap: 20px; font-size: 14px; }
+h1 { font-size: 20px; margin: 0; }
+h2 { font-size: 15px; margin: 0 0 4px; display: flex; align-items: center; gap: 8px; }
+section { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+section p { margin: 0; }
+label { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+input, select { font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 3px 6px; }
+input[type='number'] { width: 64px; }
+input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.tag { font-size: 11px; font-weight: 500; color: var(--orange); border: 1px solid var(--orange); border-radius: 999px; padding: 0 7px; }
+.warn { color: var(--red); font-size: 12px; }

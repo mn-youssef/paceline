@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.output/
+.wxt/
+test-results/
+playwright-report/
+*.tmp
+.DS_Store
+.docs
+.superpowers
+docs

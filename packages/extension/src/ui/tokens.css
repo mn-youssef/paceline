@@ -1,0 +1,44 @@
+:root {
+  --bg: #fafaf9;
+  --card: #ffffff;
+  --fg: #1c1917;
+  --muted: #78716c;
+  --border: #e7e5e4;
+  --track: #e7e5e4;
+  --accent: #ea580c;
+  --green: #16a34a;
+  --orange: #ea580c;
+  --red: #dc2626;
+  --grey: #a8a29e;
+  --opus: #7c3aed;
+  --sonnet: #2563eb;
+  --haiku: #0d9488;
+  --fable: #db2777;
+  --other: #a8a29e;
+  color-scheme: light dark;
+  font: 13px/1.45 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1917;
+    --card: #292524;
+    --fg: #f5f5f4;
+    --muted: #a8a29e;
+    --border: #44403c;
+    --track: #44403c;
+  }
+}
+
+* { box-sizing: border-box; }
+/* Chrome injects `body { font-size: 75% }` into extension pages; take the root font instead. */
+body { margin: 0; background: var(--bg); color: var(--fg); font: inherit; }
+button { font: inherit; }
+code { font: 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.muted { color: var(--muted); font-size: 12px; }
+.grade { display: inline-block; margin-left: 6px; min-width: 18px; padding: 0 4px; border-radius: 4px; font-size: 11px; font-weight: 700; text-align: center; color: #fff; }
+.grade-A { background: var(--green); }
+.grade-B { background: #65a30d; }
+.grade-C { background: #ca8a04; }
+.grade-D { background: var(--orange); }
+.grade-F { background: var(--red); }

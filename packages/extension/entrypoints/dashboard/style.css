@@ -1,0 +1,106 @@
+@import '../../src/ui/tokens.css';
+
+/* Chart colours: validated reference palette (categorical slots 1–5), sequential blue for the heatmap, status green/red for the habits strip. */
+:root {
+  --c0: #2a78d6;
+  --c1: #eb6834;
+  --c2: #1baf7a;
+  --c3: #eda100;
+  --c4: #e87ba4;
+  --heat-1: #cde2fb;
+  --heat-2: #86b6ef;
+  --heat-3: #3987e5;
+  --heat-4: #1c5cab;
+  --heat-5: #0d366b;
+  --good: #0ca30c;
+  --critical: #d03b3b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --c0: #3987e5;
+    --c1: #d95926;
+    --c2: #199e70;
+    --c3: #c98500;
+    --c4: #d55181;
+    /* Near zero recedes into the dark surface. */
+    --heat-1: #0d366b;
+    --heat-2: #1c5cab;
+    --heat-3: #3987e5;
+    --heat-4: #86b6ef;
+    --heat-5: #cde2fb;
+  }
+}
+
+.dash { max-width: 1040px; margin: 0 auto; padding: 24px 16px 48px; display: flex; flex-direction: column; gap: 16px; font-size: 14px; }
+.dash-head { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.dash-head h1 { font-size: 20px; margin: 0; flex: 1; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.card h2 { font-size: 15px; margin: 0; }
+.card p { margin: 0; }
+.value-card .value { font-size: 18px; font-weight: 600; }
+.banner { margin: 0; border-radius: 8px; padding: 8px 10px; font-size: 13px; }
+.banner.info { background: color-mix(in srgb, var(--sonnet) 12%, transparent); }
+.banner.warn { background: color-mix(in srgb, var(--orange) 15%, transparent); }
+.tone-high { color: var(--red); }
+.warn { color: var(--red); font-size: 12px; }
+
+.tabs { display: flex; gap: 4px; }
+.tabs button, .table-actions button, .dash-head > button, .dialog-actions button, .button {
+  font: inherit; border: 1px solid var(--border); background: var(--card); color: var(--fg); border-radius: 8px; padding: 4px 12px; cursor: pointer; text-decoration: none;
+}
+.tabs button[aria-selected='true'] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+button:focus-visible, .button:focus-visible, svg:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.chart { margin: 0; }
+/* Natural size on wide screens (labels stay 11px); shrinks to fit on narrow ones. */
+.chart svg { display: block; max-width: 100%; height: auto; }
+.axis { stroke: var(--border); }
+.gridline { stroke: var(--border); stroke-dasharray: 2 4; }
+.tick { fill: var(--muted); font-size: 11px; }
+/* A 2px surface-coloured stroke separates stacked segments. */
+.seg { stroke: var(--card); stroke-width: 2px; }
+.s-0 { fill: var(--c0); background: var(--c0); }
+.s-1 { fill: var(--c1); background: var(--c1); }
+.s-2 { fill: var(--c2); background: var(--c2); }
+.s-3 { fill: var(--c3); background: var(--c3); }
+.s-4 { fill: var(--c4); background: var(--c4); }
+.s-other { fill: var(--other); background: var(--other); }
+.legend { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; }
+.legend li { display: flex; align-items: center; gap: 6px; }
+.swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; }
+.heat-0 { fill: var(--track); }
+.heat-1 { fill: var(--heat-1); }
+.heat-2 { fill: var(--heat-2); }
+.heat-3 { fill: var(--heat-3); }
+.heat-4 { fill: var(--heat-4); }
+.heat-5 { fill: var(--heat-5); }
+
+.barlist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.barlist li { display: grid; grid-template-columns: 64px 1fr auto; align-items: center; gap: 8px; }
+.bl-track { height: 10px; }
+.bl-bar { display: block; height: 100%; background: var(--c0); border-radius: 0 4px 4px 0; }
+.bl-value { font-variant-numeric: tabular-nums; }
+
+.strip { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(30, 1fr); gap: 2px; }
+.strip .day { height: 20px; border-radius: 3px; }
+.strip-legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--muted); }
+.key { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; }
+.day-under { background: var(--good); }
+.day-over { background: var(--critical); }
+.day-none { background: var(--track); }
+
+.table-actions { display: flex; justify-content: flex-end; align-items: center; gap: 12px; }
+.table-wrap { overflow-x: auto; }
+.sessions-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.sessions-table th, .sessions-table td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.sessions-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.sessions-table th button { all: unset; cursor: pointer; font-weight: 600; }
+.sessions-table th button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.dialog-backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / 0.55); display: grid; place-items: center; padding: 16px; }
+.dialog { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 640px; }
+.dialog img { width: 100%; height: auto; border-radius: 8px; }
+.dialog p { margin: 0; }
+.dialog-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.button.disabled { pointer-events: none; opacity: 0.5; }

@@ -1,0 +1,23 @@
+{
+  "name": "paceline",
+  "version": "0.1.0",
+  "description": "Local helper for Paceline, the usage meter for Claude Code",
+  "license": "MIT",
+  "type": "module",
+  "bin": { "paceline": "dist/paceline.cjs" },
+  "files": ["dist/paceline.cjs", "README.md"],
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "devDependencies": {
+    "@paceline/shared": "workspace:*",
+    "@types/node": "22.20.5",
+    "esbuild": "0.28.2",
+    "typescript": "5.9.3",
+    "vitest": "5.0.4",
+    "zod": "4.6.7"
+  }
+}

@@ -1,0 +1,16 @@
+@import '../../src/ui/tokens.css';
+
+html, body { height: 100%; }
+.celebrate {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--accent) 22%, var(--bg)), var(--bg) 70%);
+}
+.emoji { font-size: 56px; }
+h1 { margin: 8px 0 4px; font-size: 24px; }
+p { margin: 0; color: var(--muted); }

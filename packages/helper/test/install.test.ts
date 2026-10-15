@@ -115,6 +115,14 @@ describe('install', () => {
     expect(existsSync(join(home, '.config', 'google-chrome', 'NativeMessagingHosts', `${HOST_NAME}.json`))).toBe(true);
   });
 
+  it('registers Vivaldi on Linux and macOS', () => {
+    const linux = setup({ browsers: [['.config', 'vivaldi']] });
+    expect(install({ ...linux.deps, os: 'linux' }).browsers).toEqual(['Vivaldi']);
+    expect(existsSync(join(linux.home, '.config', 'vivaldi', 'NativeMessagingHosts', `${HOST_NAME}.json`))).toBe(true);
+    const mac = setup({ browsers: [['Library', 'Application Support', 'Vivaldi']] });
+    expect(install(mac.deps).browsers).toEqual(['Vivaldi']);
+  });
+
   it('records CLAUDE_CONFIG_DIR so the browser-launched host finds it', () => {
     const { home, deps } = setup();
     const dir = join(home, 'claude-work');

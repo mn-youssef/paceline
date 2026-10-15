@@ -19,6 +19,7 @@ const DARWIN: [string, string[]][] = [
   ['Edge', ['Microsoft Edge']],
   ['Brave', ['BraveSoftware', 'Brave-Browser']],
   ['Arc', ['Arc', 'User Data']],
+  ['Vivaldi', ['Vivaldi']],
 ];
 
 const LINUX: [string, string[]][] = [
@@ -27,6 +28,7 @@ const LINUX: [string, string[]][] = [
   ['Chromium', ['chromium']],
   ['Edge', ['microsoft-edge']],
   ['Brave', ['BraveSoftware', 'Brave-Browser']],
+  ['Vivaldi', ['vivaldi']],
 ];
 
 const WINDOWS: [string, string[], string][] = [

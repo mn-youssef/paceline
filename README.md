@@ -1,6 +1,6 @@
 # Paceline — usage meter for Claude Code
 
-Paceline is a browser extension for Chrome, Edge, Brave and Arc. It shows how much of your Claude Code usage limit you have used, warns you before you hit it, and tells you which sessions used your tokens and why.
+Paceline is a browser extension for Chrome, Edge, Brave, Vivaldi and Arc. It shows how much of your Claude Code usage limit you have used, warns you before you hit it, and tells you which sessions used your tokens and why.
 
 It has two parts that work together:
 
@@ -52,7 +52,7 @@ The dollar amounts are **API value**: what the same tokens would cost at Anthrop
 - **Claude Code**, used at least once.
 - A **Pro or Max plan** for the limit %. On an API key, sessions, tips and the dashboard still work.
 - **Node.js 18 or newer** for the helper (`node --version`).
-- **A Chromium browser:** Chrome, Edge, Brave, Chromium, or Arc on macOS.
+- **A Chromium browser:** Chrome, Edge, Brave, Chromium, Vivaldi (macOS and Linux), or Arc on macOS.
 - **macOS or Linux.** Windows is supported in the code but not tested yet.
 
 ## Install

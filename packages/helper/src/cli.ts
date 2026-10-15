@@ -79,7 +79,7 @@ async function main(argv: string[]): Promise<number> {
       console.log(
         r.browsers.length
           ? `✓ Registered with ${r.browsers.join(', ')}`
-          : '! No supported browser profile found (Chrome, Edge, Brave, Arc, Chromium). Install one, then run this again.',
+          : '! No supported browser profile found (Chrome, Edge, Brave, Arc, Chromium, Vivaldi). Install one, then run this again.',
       );
       console.log(`✓ Status line ${r.statusLine === 'already' ? 'already set up' : `added to ${paths.claudeSettings}`}${r.chained ? ` (your previous one still runs: ${r.chained})` : ''}`);
       if (r.backup) console.log(`  Backup of your settings: ${r.backup}`);

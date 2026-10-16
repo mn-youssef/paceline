@@ -8,7 +8,7 @@ import { stackByProject } from '../src/dashboard/model';
 
 describe('StackedBars', () => {
   const stacked = stackByProject([
-    { day: '2026-10-12', costUsd: 3, sessions: 2, byProject: { regx: 2, web: 1 } },
+    { day: '2026-10-12', costUsd: 3, sessions: 2, byProject: { shop: 2, web: 1 } },
     { day: '2026-10-13', costUsd: 0, sessions: 0, byProject: {} },
   ]);
 
@@ -17,13 +17,13 @@ describe('StackedBars', () => {
     expect(html).toContain('aria-label="Daily API value by project"');
     expect(html.match(/class="seg /g)).toHaveLength(2);
     expect(html.match(/<path class="seg /g)).toHaveLength(1);
-    expect(html).toContain('<title>2026-10-12 · regx: $2.00</title>');
+    expect(html).toContain('<title>2026-10-12 · shop: $2.00</title>');
     expect(html).toContain('>10-13</text>');
   });
 
   it('lists each project with its total in the legend', () => {
     const html = renderToString(<StackedBars stacked={stacked} label="x" />);
-    expect(html).toContain('<span class="legend-name">regx</span><span class="muted">$2.00</span>');
+    expect(html).toContain('<span class="legend-name">shop</span><span class="muted">$2.00</span>');
   });
 
   it('keeps the last day label inside the chart', () => {

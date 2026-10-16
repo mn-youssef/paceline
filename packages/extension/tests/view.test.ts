@@ -80,14 +80,14 @@ describe('forecast and hidden-cost views', () => {
 
   it('names what really drives setup overhead', () => {
     const setup = (mcpServers: number, claudeMdTokens: number) =>
-      hiddenCards(makeHiddenCosts({ setupOverhead: { usd: 2.6, projects: [{ projectName: 'regx', projectPath: '/x/regx', setupTokens: 64_000, mcpServers, claudeMdTokens, usd: 2.6 }] } })).find(
+      hiddenCards(makeHiddenCosts({ setupOverhead: { usd: 2.6, projects: [{ projectName: 'shop', projectPath: '/x/shop', setupTokens: 64_000, mcpServers, claudeMdTokens, usd: 2.6 }] } })).find(
         (c) => c.id === 'setupOverhead',
       )!;
     expect(setup(0, 338)).toMatchObject({
-      sentence: 'regx starts every message with 64k tokens of built-in tools, plugins and skills.',
+      sentence: 'shop starts every message with 64k tokens of built-in tools, plugins and skills.',
       action: "Turn off plugins and skills you don't use in this project.",
     });
-    expect(setup(0, 9_000)).toMatchObject({ sentence: 'regx starts every message with 64k tokens: CLAUDE.md 9k.', action: 'Trim CLAUDE.md to what every task needs.' });
+    expect(setup(0, 9_000)).toMatchObject({ sentence: 'shop starts every message with 64k tokens: CLAUDE.md 9k.', action: 'Trim CLAUDE.md to what every task needs.' });
     expect(setup(5, 9_000).action).toBe('Disable MCP servers you do not use and trim CLAUDE.md.');
   });
 });

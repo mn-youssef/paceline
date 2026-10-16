@@ -11,9 +11,9 @@ const NOW = Date.parse('2026-10-13T12:00:00Z'); // Tuesday 14:00 at UTC+2
 const CLOCK = fixedOffsetClock(120);
 const none = () => NO_OVERHEAD;
 
-const regx = makeAgg({
+const shop = makeAgg({
   sessionId: 'a',
-  projectPath: '/x/regx',
+  projectPath: '/x/shop',
   costUsd: 5,
   costByModel: { 'claude-opus-5-5': 5 },
   hourly: { [hourKey('2026-10-12T21:00:00Z')]: cost(2), [hourKey('2026-10-12T22:00:00Z')]: cost(3) },
@@ -28,21 +28,21 @@ const web = makeAgg({
 
 describe('buildDashboard', () => {
   it('buckets by the local clock', () => {
-    const d = buildDashboard([regx, web], '7d', NOW, none, CLOCK);
+    const d = buildDashboard([shop, web], '7d', NOW, none, CLOCK);
     expect(d.days.map((x) => x.day)).toEqual(['2026-10-07', '2026-10-08', '2026-10-09', '2026-10-10', '2026-10-11', '2026-10-12', '2026-10-13']);
     // 21:00Z is Monday 23:00 local; 22:00Z is Tuesday 00:00 local.
-    expect(d.days.at(-2)).toEqual({ day: '2026-10-12', costUsd: 2, sessions: 1, byProject: { regx: 2 } });
-    expect(d.days.at(-1)).toEqual({ day: '2026-10-13', costUsd: 3, sessions: 1, byProject: { regx: 3 } });
+    expect(d.days.at(-2)).toEqual({ day: '2026-10-12', costUsd: 2, sessions: 1, byProject: { shop: 2 } });
+    expect(d.days.at(-1)).toEqual({ day: '2026-10-13', costUsd: 3, sessions: 1, byProject: { shop: 3 } });
     expect(d.heatmap[1]![23]).toBe(2);
     expect(d.heatmap[2]![0]).toBe(3);
   });
 
   it('adds up this month whatever the range, and lists graded sessions', () => {
-    const week = buildDashboard([regx, web], '7d', NOW, none, CLOCK);
-    expect(week.monthToDateUsd).toBe(11); // regx 5 + web 5 (Oct 1 12:00) + 1 (Oct 1 01:00 local); Sep 30 local excluded
+    const week = buildDashboard([shop, web], '7d', NOW, none, CLOCK);
+    expect(week.monthToDateUsd).toBe(11); // shop 5 + web 5 (Oct 1 12:00) + 1 (Oct 1 01:00 local); Sep 30 local excluded
     expect(week.sessions.map((s) => [s.sessionId, s.costUsd, s.grade])).toEqual([['a', 5, expect.stringMatching(/^[A-F]$/)]]);
     expect(week.byModel).toEqual({ 'claude-opus-5-5': 5 });
-    const month = buildDashboard([regx, web], '30d', NOW, none, CLOCK);
+    const month = buildDashboard([shop, web], '30d', NOW, none, CLOCK);
     expect(month.sessions.map((s) => [s.sessionId, s.costUsd])).toEqual([['b', 10], ['a', 5]]);
     expect(month.days.find((x) => x.day === '2026-10-01')?.costUsd).toBe(6);
   });

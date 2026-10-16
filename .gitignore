@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .output/
+.output-store/
 .wxt/
 test-results/
 playwright-report/
@@ -8,4 +9,4 @@ playwright-report/
 .DS_Store
 .docs
 .superpowers
-docs
+docs/superpowers

@@ -11,6 +11,7 @@
     "build": "pnpm -r build",
     "gen:dev-key": "node scripts/gen-dev-key.mjs",
     "gen:icons": "node scripts/gen-icons.mjs",
-    "smoke": "node scripts/smoke-install.mjs packages/helper/dist/paceline.cjs"
+    "smoke": "node scripts/smoke-install.mjs packages/helper/dist/paceline.cjs",
+    "release:check": "node scripts/release-check.mjs"
   }
 }

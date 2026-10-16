@@ -56,6 +56,9 @@ button:focus-visible, .button:focus-visible, svg:focus-visible { outline: 2px so
 .chart { margin: 0; }
 /* Natural size on wide screens (labels stay 11px); shrinks to fit on narrow ones. */
 .chart svg { display: block; max-width: 100%; height: auto; }
+/* The daily chart scrolls sideways in narrow windows instead of shrinking its labels. */
+.chart-scroll { overflow-x: auto; }
+.chart-scroll svg { min-width: 640px; }
 .axis { stroke: var(--border); }
 .gridline { stroke: var(--border); stroke-dasharray: 2 4; }
 .tick { fill: var(--muted); font-size: 11px; }

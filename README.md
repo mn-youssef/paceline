@@ -17,7 +17,7 @@ It has two parts that work together:
 <p align="center"><sub>The popup: both limits with a forecast, today's budget, and the sessions that used the most, with tips.</sub></p>
 
 <p align="center">
-  <img src="docs/images/dashboard.png" alt="Paceline dashboard for the last 30 days: this month's API value against the plan price, the daily budget strip, daily API value stacked by project, model mix, tool output, a weekday by hour heatmap and the sessions table with grades and tips">
+  <img src="docs/images/dashboard.png" alt="Paceline dashboard for the last 30 days: this month's API value against the plan price, the daily budget strip, daily API value stacked by project, each project's tokens and API value, model mix, tool output, a weekday by hour heatmap and the sessions table with grades and tips">
 </p>
 <p align="center"><sub>The dashboard: 30 days of API value by project, models, tools, when you work, and every session with its grade.</sub></p>
 

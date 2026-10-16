@@ -1,5 +1,7 @@
 # Paceline — usage meter for Claude Code
 
+[![CI](https://github.com/mn-youssef/paceline/actions/workflows/ci.yml/badge.svg)](https://github.com/mn-youssef/paceline/actions/workflows/ci.yml)
+
 Paceline is a browser extension for Chrome, Edge, Brave and Arc. It shows how much of your Claude Code usage limit you have used, warns you before you hit it, and tells you which sessions used your tokens and why.
 
 It has two parts that work together:

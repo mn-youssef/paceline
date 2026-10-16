@@ -107,3 +107,15 @@ button:focus-visible, .button:focus-visible, svg:focus-visible { outline: 2px so
 .dialog p { margin: 0; }
 .dialog-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .button.disabled { pointer-events: none; opacity: 0.5; }
+
+/* Projects: a monthly budget per project, with a bar that turns orange from 80 % and red above 100 %. */
+.budget-cell label { display: flex; align-items: center; gap: 4px; }
+.budget-cell input { width: 72px; font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 2px 6px; }
+.budget-cell input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.budget-bar { display: block; height: 6px; margin-top: 6px; border-radius: 3px; background: var(--track); overflow: hidden; min-width: 120px; }
+.budget-bar > span { display: block; height: 100%; }
+.budget-bar.tone-ok > span { background: var(--green); }
+.budget-bar.tone-near > span { background: var(--orange); }
+.budget-bar.tone-over > span { background: var(--red); }
+.budget-text { display: block; margin-top: 4px; font-size: 12px; }
+.budget-text.over { color: var(--red-text); }

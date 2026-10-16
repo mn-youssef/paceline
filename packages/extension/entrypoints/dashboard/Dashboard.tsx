@@ -11,6 +11,7 @@ import { BarList } from './charts/BarList';
 import { Heatmap } from './charts/Heatmap';
 import { StackedBars } from './charts/StackedBars';
 import { HabitsStrip } from './HabitsStrip';
+import { ProjectsTable } from './ProjectsTable';
 import { SessionsTable } from './SessionsTable';
 
 const RANGE_LABEL: Record<DashboardRange, string> = { '7d': 'Last 7 days', '30d': 'Last 30 days' };
@@ -72,6 +73,16 @@ export function Dashboard({ actions }: { actions?: (view: DashboardView) => Reac
 
   const stacked = useMemo(() => (data ? stackByProject(data.days) : null), [data]);
 
+  const saveBudget = (name: string, budget: number | null) => {
+    if (!settings) return;
+    const projectBudgets = { ...settings.projectBudgets };
+    if (budget === null) delete projectBudgets[name];
+    else projectBudgets[name] = budget;
+    const next = { ...settings, projectBudgets };
+    setSettings(next);
+    void chromeStore.set({ settings: next });
+  };
+
   return (
     <main className="dash">
       <header className="dash-head">
@@ -101,6 +112,10 @@ export function Dashboard({ actions }: { actions?: (view: DashboardView) => Reac
           <section className="card">
             <h2>Daily API value by project</h2>
             <StackedBars stacked={stacked} label={`Daily API value by project, ${RANGE_LABEL[data.range].toLowerCase()}`} />
+          </section>
+          <section className="card">
+            <h2>Projects</h2>
+            <ProjectsTable projects={data.projects} budgets={settings.projectBudgets} onBudgetChange={saveBudget} />
           </section>
           <div className="cards">
             <section className="card">

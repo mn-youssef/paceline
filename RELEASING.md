@@ -19,7 +19,7 @@ The published helper trusts **only** the store extension. The development key in
    It lands in `packages/extension/.output-store/`.
 2. **Create the draft:** in the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole), choose **New item** and upload the zip. Don't submit yet. Copy the item's ID (32 letters).
 3. **Put the ID in the code:** set `"store"` in `packages/shared/src/extension-ids.json`, then commit.
-4. **Check everything:**
+4. **Check everything** (on macOS or Linux):
 
    ```bash
    pnpm release:check
@@ -32,19 +32,18 @@ The published helper trusts **only** the store extension. The development key in
    cd packages/helper && pnpm publish
    ```
 
-   `prepublishOnly` rebuilds the release helper, so a development build can't be published by mistake.
-6. **Test the real thing:**
-   1. In the dashboard, set **Distribution** to **Unlisted** and upload the zip from step 4 as the package.
-   2. Install Paceline from the store link.
-   3. Run `npx paceline install` and check that the popup says **Connected**.
-7. **Fill in the listing** from [docs/store/listing.md](docs/store/listing.md), with the images in `docs/store/`. Then click **Submit for review**.
-8. **Tag the release:**
+   `prepublishOnly` rebuilds the release helper. It refuses to build if `PACELINE_STORE_ID` is set, so a rehearsal ID can't be published.
+6. **Fill in the listing:** in the dashboard, upload the zip from step 4 as the package. Fill in the **Store listing** and **Privacy practices** tabs from [docs/store/listing.md](docs/store/listing.md), with the images in `docs/store/`.
+7. **Submit as Unlisted:** set **Distribution** to **Unlisted** and click **Submit for review**. A draft or Unlisted item can't be installed before it's approved, so wait for the approval email. Extensions that use native messaging often take a few days.
+8. **Test the real thing:** install Paceline from the Unlisted store link on a machine that has Claude Code, run `npx paceline install`, and check that the popup says **Connected**.
+9. **Go public:** switch **Distribution** to **Public**. The change can go through a short review.
+10. **Tag the release:**
 
-   ```bash
-   git tag v<version> && git push --tags
-   ```
+    ```bash
+    git tag v<version> && git push --tags
+    ```
 
-   Then put the store link in the README and the guide.
+    Then put the store link in the README and the guide.
 
 ## Later releases
 

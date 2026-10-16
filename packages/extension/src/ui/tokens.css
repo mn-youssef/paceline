@@ -37,8 +37,9 @@ button { font: inherit; }
 code { font: 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 .muted { color: var(--muted); font-size: 12px; }
 .grade { display: inline-block; margin-left: 6px; min-width: 18px; padding: 0 4px; border-radius: 4px; font-size: 11px; font-weight: 700; text-align: center; color: #fff; }
-.grade-A { background: var(--green); }
-.grade-B { background: #65a30d; }
-.grade-C { background: #ca8a04; }
-.grade-D { background: var(--orange); }
-.grade-F { background: var(--red); }
+/* White text needs 4.5:1 contrast (WCAG AA) on every grade colour. */
+.grade-A { background: #15803d; }
+.grade-B { background: #4d7c0f; }
+.grade-C { background: #a16207; }
+.grade-D { background: #c2410c; }
+.grade-F { background: #b91c1c; }

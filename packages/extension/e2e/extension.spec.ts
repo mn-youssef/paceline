@@ -173,9 +173,10 @@ test('dashboard lists projects and saves a budget', async () => {
     sw.evaluate(async () => ((await (globalThis as any).chrome.storage.local.get('settings')).settings?.projectBudgets?.['my-app'] ?? null) as number | null);
   const page = await context.newPage();
   await page.goto(`chrome-extension://${DEV_EXTENSION_ID}/dashboard.html`);
-  const projects = page.locator('.projects-table');
-  await expect(projects.getByRole('cell', { name: 'my-app' })).toBeVisible();
-  await expect(projects.getByRole('cell', { name: '2M', exact: true })).toBeVisible();
+  const projects = page.locator('.projects-card');
+  await expect(projects.locator('.project-name', { hasText: 'my-app' })).toBeVisible();
+  await expect(projects.locator('.token-total')).toHaveText('2.3M');
+  await projects.getByRole('button', { name: 'Set budget' }).click();
   const input = page.getByRole('spinbutton', { name: 'Monthly budget for my-app, in dollars' });
   await input.fill('100');
   await input.blur();

@@ -1,5 +1,5 @@
 import { basename } from 'node:path';
-import { TOOL_CATEGORIES, type DashboardData, type DashboardRange, type DashboardSession, type ToolCategory } from '@paceline/shared';
+import { TOOL_CATEGORIES, type DashboardData, type DashboardProject, type DashboardRange, type DashboardSession, type ToolCategory } from '@paceline/shared';
 import { HOUR_MS } from '../parse/accumulator';
 import type { ProjectOverhead } from './overhead';
 import type { SessionAggregate } from './summary';
@@ -58,6 +58,16 @@ export function buildDashboard(
   const byCategory = Object.fromEntries(TOOL_CATEGORIES.map((c) => [c, 0])) as Record<ToolCategory, number>;
   const rows: DashboardSession[] = [];
   let monthToDateUsd = 0;
+  // Per project: tokens and cost in the range, and this month's cost for its budget.
+  const projects = new Map<string, DashboardProject>();
+  const project = (name: string): DashboardProject => {
+    let p = projects.get(name);
+    if (!p) {
+      p = { name, sessions: 0, costUsd: 0, tokens: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }, monthToDateUsd: 0 };
+      projects.set(name, p);
+    }
+    return p;
+  };
 
   for (const a of aggs) {
     const name = basename(a.projectPath) || a.projectPath;
@@ -65,7 +75,10 @@ export function buildDashboard(
     let inRange = 0;
     for (const [key, h] of Object.entries(a.hourly)) {
       const ts = Number(key) * HOUR_MS;
-      if (ts >= monthStart) monthToDateUsd += h.costUsd;
+      if (ts >= monthStart && h.costUsd > 0) {
+        monthToDateUsd += h.costUsd;
+        project(name).monthToDateUsd += h.costUsd;
+      }
       if (ts < start || h.costUsd === 0) continue;
       const day = days.get(clock.dayKey(ts));
       if (!day) continue;
@@ -75,8 +88,15 @@ export function buildDashboard(
       const row = heatmap[clock.weekday(ts)]!;
       row[clock.hour(ts)] = (row[clock.hour(ts)] ?? 0) + h.costUsd;
       inRange += h.costUsd;
+      const p = project(name);
+      p.costUsd += h.costUsd;
+      p.tokens.input += h.inputTokens;
+      p.tokens.output += h.outputTokens;
+      p.tokens.cacheRead += h.cacheReadTokens;
+      p.tokens.cacheWrite += h.cacheWriteTokens;
     }
     if (inRange === 0) continue;
+    project(name).sessions++;
     for (const day of activeDays) days.get(day)!.sessions++;
     // Session-level counters are spread by the share of the session's cost that falls in the range.
     const share = a.costUsd > 0 ? inRange / a.costUsd : 0;
@@ -108,5 +128,6 @@ export function buildDashboard(
     sessions: rows.slice(0, MAX_DASHBOARD_SESSIONS),
     truncated: rows.length > MAX_DASHBOARD_SESSIONS,
     indexing,
+    projects: [...projects.values()].sort((x, y) => y.costUsd - x.costUsd || y.monthToDateUsd - x.monthToDateUsd),
   };
 }

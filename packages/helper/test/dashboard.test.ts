@@ -6,7 +6,7 @@ import { fixedOffsetClock } from './fixtures/clock';
 
 const H = 3_600_000;
 const hourKey = (iso: string) => String(Date.parse(iso) / H);
-const cost = (usd: number) => ({ ...emptyHour(), costUsd: usd });
+const cost = (usd: number, tokens = 0) => ({ ...emptyHour(), costUsd: usd, inputTokens: tokens, outputTokens: tokens / 10 });
 const NOW = Date.parse('2026-10-13T12:00:00Z'); // Tuesday 14:00 at UTC+2
 const CLOCK = fixedOffsetClock(120);
 const none = () => NO_OVERHEAD;
@@ -16,7 +16,7 @@ const shop = makeAgg({
   projectPath: '/x/shop',
   costUsd: 5,
   costByModel: { 'claude-opus-5-5': 5 },
-  hourly: { [hourKey('2026-10-12T21:00:00Z')]: cost(2), [hourKey('2026-10-12T22:00:00Z')]: cost(3) },
+  hourly: { [hourKey('2026-10-12T21:00:00Z')]: cost(2, 1000), [hourKey('2026-10-12T22:00:00Z')]: cost(3, 2000) },
 });
 const web = makeAgg({
   sessionId: 'b',
@@ -45,6 +45,25 @@ describe('buildDashboard', () => {
     const month = buildDashboard([shop, web], '30d', NOW, none, CLOCK);
     expect(month.sessions.map((s) => [s.sessionId, s.costUsd])).toEqual([['b', 10], ['a', 5]]);
     expect(month.days.find((x) => x.day === '2026-10-01')?.costUsd).toBe(6);
+  });
+
+  it('totals each project for the range and the month', () => {
+    const d = buildDashboard([shop, web], '7d', NOW, none, CLOCK);
+    expect(d.projects?.map((p) => [p.name, p.sessions, p.costUsd, p.monthToDateUsd])).toEqual([
+      ['shop', 1, 5, 5],
+      ['web', 0, 0, 6], // no use in the last 7 days, but this month's spend keeps it listed
+    ]);
+  });
+
+  it('adds up to the same total as the days', () => {
+    const d = buildDashboard([shop, web], '30d', NOW, none, CLOCK);
+    const byProject = d.projects!.reduce((s, p) => s + p.costUsd, 0);
+    expect(byProject).toBeCloseTo(d.days.reduce((s, x) => s + x.costUsd, 0));
+  });
+
+  it('reports the tokens of the range', () => {
+    const d = buildDashboard([shop, web], '7d', NOW, none, CLOCK);
+    expect(d.projects?.[0]?.tokens).toEqual({ input: 3000, output: 300, cacheRead: 0, cacheWrite: 0 });
   });
 
   it('caps the table at 500 sessions', () => {

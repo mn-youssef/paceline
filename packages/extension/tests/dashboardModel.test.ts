@@ -69,11 +69,22 @@ describe('sortSessions', () => {
 
 describe('toCsv', () => {
   it('escapes commas, quotes and newlines', () => {
-    const csv = toCsv([makeDashboardSession({ projectName: 'a,"b"\nc', tips: [{ ruleId: 'x', title: 'Long, long context' }] })]);
-    const [header, line, end] = csv.split('\r\n');
+    const startedAt = new Date(2026, 9, 12, 9, 5).getTime();
+    const csv = toCsv([makeDashboardSession({ projectName: 'a,"b"\nc', startedAt, tips: [{ ruleId: 'x', title: 'Long, long context' }] })]);
+    const [header, line, end] = csv.replace(/^\uFEFF/, '').split('\r\n');
     expect(header).toBe('project,started,duration_min,turns,api_value_usd,grade,score,tips');
-    expect(line).toBe('"a,""b""\nc",2026-10-12T09:00:00.000Z,60,12,2.00,B,80,"Long, long context"');
+    expect(line).toBe('"a,""b""\nc",2026-10-12 09:05,60,12,2.00,B,80,"Long, long context"');
     expect(end).toBe('');
+  });
+
+  it('starts with a byte-order mark for spreadsheets', () => {
+    expect(toCsv([]).startsWith('\uFEFFproject,')).toBe(true);
+  });
+
+  it('neutralises a leading tab or carriage return', () => {
+    const lines = toCsv([makeDashboardSession({ projectName: '\t=1' }), makeDashboardSession({ projectName: '\r=1' })]).split('\r\n');
+    expect(lines[1]!.startsWith("'\t=1,")).toBe(true);
+    expect(lines[2]!.startsWith(`"'\r=1",`)).toBe(true);
   });
 
   it('keeps spreadsheet formulas inert', () => {

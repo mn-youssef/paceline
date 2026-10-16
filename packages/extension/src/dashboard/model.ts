@@ -66,18 +66,27 @@ const CSV_HEADER = 'project,started,duration_min,turns,api_value_usd,grade,score
 
 function csvField(v: string | number): string {
   let s = String(v);
-  // Spreadsheets evaluate a cell that starts with = + - @ as a formula.
-  if (typeof v === 'string' && /^[=+\-@]/.test(s)) s = `'${s}`;
+  // Spreadsheets evaluate a cell that starts with = + - @ (or a tab or carriage return before one) as a formula.
+  if (typeof v === 'string' && /^[=+\-@\t\r]/.test(s)) s = `'${s}`;
   return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+const pad2 = (n: number) => String(n).padStart(2, '0');
+
+/** Local time as "2026-10-12 09:05", which spreadsheets read as a date. */
+function localDateTime(ts: number): string {
+  const d = new Date(ts);
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 }
 
 export function toCsv(rows: DashboardSession[]): string {
   const lines = rows.map((r) =>
-    [r.projectName, new Date(r.startedAt).toISOString(), Math.round(r.durationMin), r.turns, r.costUsd.toFixed(2), r.grade, r.score, r.tips.map((t) => t.title).join('; ')]
+    [r.projectName, localDateTime(r.startedAt), Math.round(r.durationMin), r.turns, r.costUsd.toFixed(2), r.grade, r.score, r.tips.map((t) => t.title).join('; ')]
       .map(csvField)
       .join(','),
   );
-  return [CSV_HEADER, ...lines].join('\r\n') + '\r\n';
+  // The byte-order mark makes Excel read the file as UTF-8 (project names with accents).
+  return '\uFEFF' + [CSV_HEADER, ...lines].join('\r\n') + '\r\n';
 }
 
 /** Cost-weighted: an expensive sloppy session counts for more than a cheap tidy one. */

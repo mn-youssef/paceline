@@ -33,6 +33,6 @@ test('dashboard', async () => {
   await page.setViewportSize({ width: 1100, height: 900 });
   await page.goto(`chrome-extension://${extensionId}/dashboard.html`);
   await page.getByRole('tab', { name: 'Last 30 days' }).click();
-  await page.getByText('This month').waitFor();
+  await page.locator('.value-card .value').waitFor();
   await page.screenshot({ path: join(OUT_DIR, 'dashboard.png'), fullPage: true });
 });

@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import AxeBuilder from '@axe-core/playwright';
 import { chromium, expect, test, type BrowserContext, type Worker } from '@playwright/test';
-import { makeDashboard, makeDashboardSession, makeHiddenCosts, makeSnapshot, makeSummary, makeTip } from '@paceline/shared/fixtures';
+import { makeDashboard, makeDashboardProject, makeDashboardSession, makeHiddenCosts, makeSnapshot, makeSummary, makeTip } from '@paceline/shared/fixtures';
 
 const here = fileURLToPath(new URL('.', import.meta.url));
 const EXT_DIR = join(here, '..', '.output-test', 'chrome-mv3');
@@ -35,6 +35,7 @@ test.beforeAll(async () => {
         days: [{ day: '2026-10-12', costUsd: 3.2, sessions: 1, byProject: { 'my-app': 3.2 } }],
         byModel: { 'claude-opus-5-5': 3.2 },
         sessions: [makeDashboardSession({ costUsd: 3.2 })],
+        projects: [makeDashboardProject()],
       }),
     }),
   );
@@ -115,7 +116,7 @@ test('dashboard renders the helper data', async () => {
   const page = await context.newPage();
   await page.goto(`chrome-extension://${DEV_EXTENSION_ID}/dashboard.html`);
   await expect(page.getByText('This month: $412 of API value on your $100 plan (4.1×)')).toBeVisible();
-  await expect(page.getByRole('cell', { name: 'my-app' })).toBeVisible();
+  await expect(page.getByRole('cell', { name: 'my-app' }).first()).toBeVisible();
   await expect(page.locator('.legend')).toContainText('my-app');
 });
 
@@ -165,3 +166,19 @@ for (const [path, ready] of [
     expect(serious).toEqual([]);
   });
 }
+
+test('dashboard lists projects and saves a budget', async () => {
+  const sw = await worker();
+  const budget = () =>
+    sw.evaluate(async () => ((await (globalThis as any).chrome.storage.local.get('settings')).settings?.projectBudgets?.['my-app'] ?? null) as number | null);
+  const page = await context.newPage();
+  await page.goto(`chrome-extension://${DEV_EXTENSION_ID}/dashboard.html`);
+  const projects = page.locator('.projects-table');
+  await expect(projects.getByRole('cell', { name: 'my-app' })).toBeVisible();
+  await expect(projects.getByRole('cell', { name: '2M', exact: true })).toBeVisible();
+  const input = page.getByRole('spinbutton', { name: 'Monthly budget for my-app, in dollars' });
+  await input.fill('100');
+  await input.blur();
+  await expect.poll(budget).toBe(100);
+  await expect(projects).toContainText('$12.0 of $100 this month');
+});

@@ -165,6 +165,15 @@ export const dashboardSessionSchema = z.object({
 });
 export type DashboardSession = z.infer<typeof dashboardSessionSchema>;
 
+export const dashboardProjectSchema = z.object({
+  name: z.string(),
+  sessions: z.number(),
+  costUsd: z.number(),
+  tokens: z.object({ input: z.number(), output: z.number(), cacheRead: z.number(), cacheWrite: z.number() }),
+  monthToDateUsd: z.number(),
+});
+export type DashboardProject = z.infer<typeof dashboardProjectSchema>;
+
 export const dashboardDataSchema = z.object({
   range: dashboardRangeSchema,
   days: z.array(z.object({ day: z.string(), costUsd: z.number(), sessions: z.number(), byProject: z.record(z.string(), z.number()) })),
@@ -175,5 +184,7 @@ export const dashboardDataSchema = z.object({
   sessions: z.array(dashboardSessionSchema),
   truncated: z.boolean(),
   indexing: z.boolean(),
+  /** Missing from helpers older than M6. */
+  projects: z.array(dashboardProjectSchema).optional(),
 });
 export type DashboardData = z.infer<typeof dashboardDataSchema>;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { dashboardDataSchema, hostRequestSchema, hostResponseSchema, sessionSummarySchema, snapshotDataSchema } from '../src/protocol';
-import { makeDashboard, makeHiddenCosts, makeSnapshot, makeSummary, makeTip } from '../src/fixtures';
+import { makeDashboard, makeDashboardProject, makeHiddenCosts, makeSnapshot, makeSummary, makeTip } from '../src/fixtures';
 
 describe('protocol schemas', () => {
   it('accepts ping and snapshot requests', () => {
@@ -43,5 +43,11 @@ describe('protocol schemas', () => {
     expect(sessionSummarySchema.parse(makeSummary()).grade).toBeUndefined();
     expect(sessionSummarySchema.parse(makeSummary({ score: 72, grade: 'B' })).grade).toBe('B');
     expect(sessionSummarySchema.safeParse({ ...makeSummary(), grade: 'E' }).success).toBe(false);
+  });
+
+  it('accepts dashboards with per-project totals, and older ones without', () => {
+    expect(dashboardDataSchema.parse(makeDashboard({ projects: [makeDashboardProject()] })).projects?.[0]?.tokens.cacheRead).toBe(2_000_000);
+    const { projects: _ignored, ...older } = makeDashboard();
+    expect(dashboardDataSchema.safeParse(older).success).toBe(true);
   });
 });

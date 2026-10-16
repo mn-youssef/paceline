@@ -96,5 +96,6 @@ describe('habitLine', () => {
   it('reads today against the budget and shows the streak only when there is one', () => {
     expect(habitLine({ todayPct: 9.4, budgetPct: 14, over: false, streak: 5 })).toEqual({ today: 'Today: 9% of 14%', over: false, streak: '🔥 5-day streak' });
     expect(habitLine({ todayPct: 16, budgetPct: 14, over: true, streak: 0 })).toEqual({ today: 'Today: 16% of 14%', over: true, streak: null });
+    expect(habitLine({ todayPct: 14.4, budgetPct: 14, over: true, streak: 0 }).today).toBe('Today: 14.4% of 14%');
   });
 });

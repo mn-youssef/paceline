@@ -67,6 +67,12 @@ export function streakDays(daily: DailyUsage, budgetPct: number, now: number): n
   return streak;
 }
 
+/** "14%", or "14.4%" when a whole number would hide which side of the budget the figure is on. */
+export function formatBudgetPct(used: number, budgetPct: number): string {
+  const whole = Math.round(used);
+  return whole === budgetPct && used !== budgetPct ? `${used.toFixed(1)}%` : `${whole}%`;
+}
+
 export interface HabitSummary {
   todayPct: number;
   budgetPct: number;

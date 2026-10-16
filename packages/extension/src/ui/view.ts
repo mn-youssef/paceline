@@ -1,7 +1,7 @@
 import type { Contributor, HiddenCosts, SessionSummary, ToolCategory } from '@paceline/shared';
 import type { Conn } from '../core/badge';
 import type { Forecast } from '../core/forecast';
-import type { HabitSummary } from '../core/habits';
+import { formatBudgetPct, type HabitSummary } from '../core/habits';
 import { formatAgo, formatClock, formatTokens, formatUsd, type FmtOpts } from '../core/format';
 import type { ResolvedLimits } from '../core/limits';
 
@@ -187,7 +187,7 @@ export function hiddenCards(hc: HiddenCosts): HiddenCard[] {
 
 export function habitLine(h: HabitSummary): { today: string; over: boolean; streak: string | null } {
   return {
-    today: `Today: ${Math.round(h.todayPct)}% of ${h.budgetPct}%`,
+    today: `Today: ${formatBudgetPct(h.todayPct, h.budgetPct)} of ${h.budgetPct}%`,
     over: h.over,
     streak: h.streak > 0 ? `🔥 ${h.streak}-day streak` : null,
   };

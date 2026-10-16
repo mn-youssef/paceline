@@ -1,4 +1,4 @@
-import { habitSummary, type DailyUsage } from '../../src/core/habits';
+import { formatBudgetPct, habitSummary, type DailyUsage } from '../../src/core/habits';
 import { habitCells } from '../../src/dashboard/model';
 import { habitLine } from '../../src/ui/view';
 
@@ -13,7 +13,7 @@ export function HabitsStrip({ daily, budgetPct, now }: { daily: DailyUsage; budg
       </p>
       <ol className="strip" aria-label={`Last 30 days against your ${budgetPct}% daily budget`}>
         {habitCells(daily, budgetPct, now).map((c) => {
-          const text = c.state === 'none' ? `${c.day}: no usage recorded` : `${c.day}: ${Math.round(c.used)}% of the weekly limit`;
+          const text = c.state === 'none' ? `${c.day}: no usage recorded` : `${c.day}: ${formatBudgetPct(c.used, budgetPct)} of the weekly limit`;
           return <li key={c.day} className={`day day-${c.state}`} title={text} aria-label={text} />;
         })}
       </ol>

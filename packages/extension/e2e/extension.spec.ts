@@ -127,3 +127,22 @@ test('popup opens the dashboard in a tab', async () => {
   await tab.waitForLoadState();
   expect(tab.url()).toBe(`chrome-extension://${DEV_EXTENSION_ID}/dashboard.html`);
 });
+
+test('budget input saves only when you leave the field', async () => {
+  const sw = await worker();
+  const stored = () =>
+    sw.evaluate(async () => ((await (globalThis as any).chrome.storage.local.get('settings')).settings?.dailyBudgetPct ?? null) as number | null);
+  const page = await context.newPage();
+  await page.goto(`chrome-extension://${DEV_EXTENSION_ID}/options.html`);
+  const input = page.getByRole('spinbutton', { name: /Daily budget/ });
+  await input.fill('');
+  await input.pressSequentially('2');
+  expect(await stored()).not.toBe(2);
+  await input.pressSequentially('0');
+  await input.blur();
+  await expect.poll(stored).toBe(20);
+  await input.fill('');
+  await input.blur();
+  await expect(input).toHaveValue('20');
+  expect(await stored()).toBe(20);
+});

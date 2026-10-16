@@ -62,3 +62,11 @@ export function parseThresholds(text: string): number[] {
   const unique = [...new Set(values)].sort((a, b) => a - b);
   return unique.length > 0 ? unique : [...DEFAULT_SETTINGS.thresholds];
 }
+
+/** The daily budget typed in Options: empty or invalid keeps the previous value; otherwise clamped to 1–100. */
+export function parseBudget(text: string, previous: number): number {
+  const trimmed = text.trim();
+  const n = Number(trimmed);
+  if (trimmed === '' || !Number.isFinite(n)) return previous;
+  return Math.min(100, Math.max(1, n));
+}

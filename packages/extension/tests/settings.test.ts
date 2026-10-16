@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_SETTINGS, inQuietHours, mergeSettings, parseThresholds, type Settings } from '../src/core/settings';
+import { DEFAULT_SETTINGS, inQuietHours, mergeSettings, parseBudget, parseThresholds, type Settings } from '../src/core/settings';
 
 const quiet = (start: string, end: string): Settings => ({ ...DEFAULT_SETTINGS, quietHours: { enabled: true, start, end } });
 
@@ -48,5 +48,16 @@ describe('parseThresholds', () => {
 
   it('falls back to the defaults when nothing usable is left', () => {
     expect(parseThresholds('')).toEqual([50, 80, 95]);
+  });
+});
+
+describe('parseBudget', () => {
+  it('parses the daily budget, keeping the previous value for empty or invalid input', () => {
+    expect(parseBudget('20', 14)).toBe(20);
+    expect(parseBudget(' 7 ', 14)).toBe(7);
+    expect(parseBudget('', 14)).toBe(14);
+    expect(parseBudget('abc', 14)).toBe(14);
+    expect(parseBudget('0', 14)).toBe(1);
+    expect(parseBudget('250', 14)).toBe(100);
   });
 });

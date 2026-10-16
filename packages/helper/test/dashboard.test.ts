@@ -56,3 +56,27 @@ describe('buildDashboard', () => {
     expect(d.truncated).toBe(true);
   });
 });
+
+describe('systemClock on the New York fall-back day', () => {
+  it('lists each local day once, starts at local midnight, and puts both 01:00 hours in one cell', () => {
+    const prev = process.env.TZ;
+    process.env.TZ = 'America/New_York';
+    try {
+      const agg = makeAgg({
+        sessionId: 'n',
+        projectPath: '/x/web',
+        costUsd: 7,
+        // 04:00Z on Oct 27 is local midnight (EDT): the range's first hour, a week of 24 h steps before Nov 2.
+        hourly: { [hourKey('2026-10-27T04:00:00Z')]: cost(4), [hourKey('2026-11-01T05:00:00Z')]: cost(1), [hourKey('2026-11-01T06:00:00Z')]: cost(2) },
+      });
+      const d = buildDashboard([agg], '7d', Date.parse('2026-11-02T17:00:00Z'), none);
+      expect(d.days.map((x) => x.day)).toEqual(['2026-10-27', '2026-10-28', '2026-10-29', '2026-10-30', '2026-10-31', '2026-11-01', '2026-11-02']);
+      expect(d.days.find((x) => x.day === '2026-10-27')?.costUsd).toBe(4);
+      expect(d.days.find((x) => x.day === '2026-11-01')?.costUsd).toBe(3);
+      expect(d.heatmap[0]![1]).toBe(3);
+    } finally {
+      if (prev === undefined) delete process.env.TZ;
+      else process.env.TZ = prev;
+    }
+  });
+});

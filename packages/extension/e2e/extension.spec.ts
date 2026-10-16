@@ -148,13 +148,15 @@ test('budget input saves only when you leave the field', async () => {
   expect(await stored()).toBe(20);
 });
 
+for (const scheme of ['light', 'dark'] as const)
 for (const [path, ready] of [
   ['popup.html', 'my-app'],
   ['options.html', 'Paceline options'],
   ['dashboard.html', 'This month'],
 ] as const) {
-  test(`no serious accessibility problems on ${path}`, async () => {
+  test(`no serious accessibility problems on ${path} (${scheme})`, async () => {
     const page = await context.newPage();
+    await page.emulateMedia({ colorScheme: scheme });
     await page.goto(`chrome-extension://${DEV_EXTENSION_ID}/${path}`);
     await expect(page.getByText(ready).first()).toBeVisible();
     const serious = (await new AxeBuilder({ page }).analyze()).violations

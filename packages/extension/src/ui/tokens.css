@@ -10,6 +10,8 @@
   --orange: #ea580c;
   /* Orange as text, and fills under white text: #ea580c is only 3.56:1 on white. */
   --orange-text: #c2410c;
+  --green-text: #15803d;
+  --red-text: #b91c1c;
   --accent-fill: #c2410c;
   --red: #dc2626;
   --grey: #a8a29e;
@@ -31,6 +33,8 @@
     --border: #44403c;
     --track: #44403c;
     --orange-text: #fb923c;
+    --green-text: #4ade80;
+    --red-text: #f87171;
   }
 }
 

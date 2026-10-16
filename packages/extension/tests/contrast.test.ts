@@ -19,3 +19,29 @@ describe('grade badges', () => {
     for (const [grade, fill] of fills) expect(contrast(fill, '#ffffff'), `grade ${grade} ${fill}`).toBeGreaterThanOrEqual(4.5);
   });
 });
+
+const css = (path: string) => readFileSync(new URL(path, import.meta.url), 'utf8');
+const vars = (block: string) => Object.fromEntries([...block.matchAll(/(--[\w-]+):\s*(#[0-9a-f]{6});/g)].map((m) => [m[1]!, m[2]!]));
+
+describe('text colours', () => {
+  const tokens = css('../src/ui/tokens.css');
+  const light = vars(/:root \{([^}]*)\}/.exec(tokens)![1]!);
+  const dark = { ...light, ...vars(/prefers-color-scheme: dark\) \{\s*:root \{([^}]*)\}/.exec(tokens)![1]!) };
+
+  it('reach WCAG AA (4.5:1) on the page and card backgrounds, in light and dark mode', () => {
+    for (const [mode, t] of [['light', light], ['dark', dark]] as const) {
+      for (const text of ['--fg', '--muted', '--orange-text', '--green-text', '--red-text']) {
+        for (const surface of ['--bg', '--card']) {
+          expect(t[text], `${mode} ${text}`).toBeDefined();
+          expect(contrast(t[text]!, t[surface]!), `${mode} ${text} on ${surface}`).toBeGreaterThanOrEqual(4.5);
+        }
+      }
+    }
+  });
+
+  it('never use a fill colour for text', () => {
+    for (const file of ['../src/ui/tokens.css', '../entrypoints/popup/style.css', '../entrypoints/options/style.css', '../entrypoints/dashboard/style.css']) {
+      expect(css(file).match(/(?<![\w-])color:\s*var\(--(orange|green|red|accent)\)/g), file).toBeNull();
+    }
+  });
+});

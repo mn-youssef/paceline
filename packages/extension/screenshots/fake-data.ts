@@ -8,7 +8,7 @@ import type { DashboardSession, SessionSummary, Tip } from '@paceline/shared';
 import { emptyTools, makeDashboard, makeHiddenCosts, makeSnapshot, makeSummary } from '@paceline/shared/fixtures';
 
 const here = fileURLToPath(new URL('.', import.meta.url));
-const EXT_DIR = join(here, '..', '.output', 'chrome-mv3');
+const EXT_DIR = join(here, '..', '.output-test', 'chrome-mv3');
 const FAKE_HOST = join(here, '..', 'e2e', 'fake-host.mjs');
 export const EXTENSION_ID = (JSON.parse(readFileSync(join(here, '..', '..', 'shared', 'src', 'extension-ids.json'), 'utf8')) as { dev: string }).dev;
 const HOST_NAME = 'com.paceline.host';

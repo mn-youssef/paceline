@@ -7,7 +7,7 @@ import { chromium, expect, test, type BrowserContext, type Worker } from '@playw
 import { makeDashboard, makeDashboardSession, makeHiddenCosts, makeSnapshot, makeSummary, makeTip } from '@paceline/shared/fixtures';
 
 const here = fileURLToPath(new URL('.', import.meta.url));
-const EXT_DIR = join(here, '..', '.output', 'chrome-mv3');
+const EXT_DIR = join(here, '..', '.output-test', 'chrome-mv3');
 const FAKE_HOST = join(here, 'fake-host.mjs');
 // Read directly: Node's ESM loader (used by Playwright) needs import attributes for JSON modules.
 const DEV_EXTENSION_ID = (JSON.parse(readFileSync(join(here, '..', '..', 'shared', 'src', 'extension-ids.json'), 'utf8')) as { dev: string }).dev;

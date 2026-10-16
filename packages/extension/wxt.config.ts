@@ -7,12 +7,15 @@ import { defineConfig } from 'wxt';
 // and go to their own folder: rebuilding .output/chrome-mv3 without the key would change the ID
 // of the unpacked extension loaded from it, and Chrome would drop it on the next restart.
 const store = process.env.PACELINE_STORE === '1';
+// e2e tests and screenshots build into their own folder: rebuilding .output/chrome-mv3 while a browser has it
+// loaded makes Chrome reinstall the extension, which erases its saved history.
+const test = process.env.PACELINE_TEST_BUILD === '1';
 const devKey = readFileSync(resolve(process.cwd(), 'dev-key.txt'), 'utf8').trim();
 const icons = { 16: 'icon/16.png', 32: 'icon/32.png', 48: 'icon/48.png', 128: 'icon/128.png' };
 
 export default defineConfig({
   modules: ['@wxt-dev/module-react'],
-  outDir: store ? '.output-store' : '.output',
+  outDir: store ? '.output-store' : test ? '.output-test' : '.output',
   manifest: {
     name: 'Paceline — usage meter for Claude Code',
     short_name: 'Paceline',

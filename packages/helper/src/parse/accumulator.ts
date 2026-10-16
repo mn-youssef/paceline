@@ -3,7 +3,7 @@ import type { AssistantEvent, LogEvent, ToolCall, UserEvent } from './line';
 import { ROUTINE_TOOLS, categorize, mcpServer } from './tools';
 
 // Bump whenever counting changes, so cached per-file states are rebuilt.
-export const ACC_VERSION = 3;
+export const ACC_VERSION = 4;
 const MIN = 60_000;
 export const ACTIVE_GAP_MS = 5 * MIN;
 export const LONG_SESSION_CONTEXT = 80_000;
@@ -29,6 +29,11 @@ export interface HourStats {
   cacheMisses: number;
   cacheMissTokens: number;
   cacheMissSavingUsd: number;
+  inputTokens: number;
+  outputTokens: number;
+  cacheReadTokens: number;
+  /** 5-minute and 1-hour cache writes together. */
+  cacheWriteTokens: number;
 }
 
 export const HOUR_MS = 3_600_000;
@@ -42,6 +47,10 @@ export const emptyHour = (): HourStats => ({
   cacheMisses: 0,
   cacheMissTokens: 0,
   cacheMissSavingUsd: 0,
+  inputTokens: 0,
+  outputTokens: 0,
+  cacheReadTokens: 0,
+  cacheWriteTokens: 0,
 });
 
 export interface PendingTurn {
@@ -222,6 +231,10 @@ function addSpend(s: AccState, model: string, u: Usage, ts: number | null, main:
   if (hour) {
     hour.costUsd += cost;
     if (subagent) hour.subagentCostUsd += cost;
+    hour.inputTokens += u.input;
+    hour.outputTokens += u.output;
+    hour.cacheReadTokens += u.cacheRead;
+    hour.cacheWriteTokens += u.cacheWrite5m + u.cacheWrite1h;
   }
   s.tokens.input += u.input;
   s.tokens.output += u.output;

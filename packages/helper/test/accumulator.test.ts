@@ -43,6 +43,21 @@ describe('accumulator', () => {
     expect(sum).toBeCloseTo(s.costUsd, 12);
   });
 
+  it('counts tokens in the hour they were used', () => {
+    const h0 = String(Math.floor(T0 / 3_600_000));
+    const s = run([turn({ id: 'a1', at: 0, usage: { input: 1000, output: 200, cacheRead: 5000, cacheWrite5m: 300, cacheWrite1h: 100 } })]);
+    expect(s.hourly[h0]).toMatchObject({ inputTokens: 1000, outputTokens: 200, cacheReadTokens: 5000, cacheWriteTokens: 400 });
+  });
+
+  it('counts a streamed message once', () => {
+    const h0 = String(Math.floor(T0 / 3_600_000));
+    const s = run(
+      [10, 50, 120].map((output) => turn({ id: 'a1', at: 0, usage: { input: 10, output }, sidechain: true })),
+      { subagent: true },
+    );
+    expect(s.hourly[h0]).toMatchObject({ inputTokens: 10, outputTokens: 120 });
+  });
+
   it('prices turns by model and buckets cost by hour', () => {
     const s = run([turn({ id: 'a1', at: 0, usage: { input: 1_000_000, output: 0 } })]);
     expect(s.costUsd).toBeCloseTo(4, 9);

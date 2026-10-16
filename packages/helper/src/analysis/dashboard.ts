@@ -1,5 +1,5 @@
 import { basename } from 'node:path';
-import { TOOL_CATEGORIES, type DashboardData, type DashboardRange, type DashboardSession, type ToolCategory } from '@paceline/shared';
+import { TOOL_CATEGORIES, type DashboardData, type DashboardProject, type DashboardRange, type DashboardSession, type ToolCategory } from '@paceline/shared';
 import { HOUR_MS } from '../parse/accumulator';
 import type { ProjectOverhead } from './overhead';
 import type { SessionAggregate } from './summary';
@@ -58,6 +58,30 @@ export function buildDashboard(
   const byCategory = Object.fromEntries(TOOL_CATEGORIES.map((c) => [c, 0])) as Record<ToolCategory, number>;
   const rows: DashboardSession[] = [];
   let monthToDateUsd = 0;
+  // Per project: sessions, cost and tokens in the range.
+  const projects = new Map<string, DashboardProject>();
+  const project = (name: string): DashboardProject => {
+    let p = projects.get(name);
+    if (!p) {
+      p = {
+        name,
+        sessions: 0,
+        costUsd: 0,
+        tokens: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+        details: {
+          byModel: {},
+          tools: Object.fromEntries(TOOL_CATEGORIES.map((c) => [c, 0])) as Record<ToolCategory, number>,
+          mcp: {},
+          skills: {},
+          cacheMisses: 0,
+          cacheMissTokens: 0,
+          subagentCostUsd: 0,
+        },
+      };
+      projects.set(name, p);
+    }
+    return p;
+  };
 
   for (const a of aggs) {
     const name = basename(a.projectPath) || a.projectPath;
@@ -75,13 +99,33 @@ export function buildDashboard(
       const row = heatmap[clock.weekday(ts)]!;
       row[clock.hour(ts)] = (row[clock.hour(ts)] ?? 0) + h.costUsd;
       inRange += h.costUsd;
+      const p = project(name);
+      p.costUsd += h.costUsd;
+      p.tokens.input += h.inputTokens;
+      p.tokens.output += h.outputTokens;
+      p.tokens.cacheRead += h.cacheReadTokens;
+      p.tokens.cacheWrite += h.cacheWriteTokens;
+      p.details!.cacheMisses += h.cacheMisses;
+      p.details!.cacheMissTokens += h.cacheMissTokens;
+      p.details!.subagentCostUsd += h.subagentCostUsd;
     }
     if (inRange === 0) continue;
+    const p = project(name);
+    const details = p.details!;
+    p.sessions++;
     for (const day of activeDays) days.get(day)!.sessions++;
     // Session-level counters are spread by the share of the session's cost that falls in the range.
     const share = a.costUsd > 0 ? inRange / a.costUsd : 0;
-    for (const [model, c] of Object.entries(a.costByModel)) byModel[model] = (byModel[model] ?? 0) + c * share;
-    for (const c of TOOL_CATEGORIES) byCategory[c] += a.tools[c].outputTokens * share;
+    for (const [model, c] of Object.entries(a.costByModel)) {
+      byModel[model] = (byModel[model] ?? 0) + c * share;
+      details.byModel[model] = (details.byModel[model] ?? 0) + c * share;
+    }
+    for (const c of TOOL_CATEGORIES) {
+      byCategory[c] += a.tools[c].outputTokens * share;
+      details.tools[c] += a.tools[c].outputTokens * share;
+    }
+    for (const [server, st] of Object.entries(a.mcp)) details.mcp[server] = (details.mcp[server] ?? 0) + st.outputTokens * share;
+    for (const [skill, st] of Object.entries(a.skills)) details.skills[skill] = (details.skills[skill] ?? 0) + st.outputTokens * share;
     const { tips, score, grade } = assessSession(a, overheadFor(a.projectPath));
     rows.push({
       sessionId: a.sessionId,
@@ -108,5 +152,6 @@ export function buildDashboard(
     sessions: rows.slice(0, MAX_DASHBOARD_SESSIONS),
     truncated: rows.length > MAX_DASHBOARD_SESSIONS,
     indexing,
+    projects: [...projects.values()].sort((x, y) => y.costUsd - x.costUsd),
   };
 }

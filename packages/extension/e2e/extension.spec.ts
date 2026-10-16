@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import AxeBuilder from '@axe-core/playwright';
 import { chromium, expect, test, type BrowserContext, type Worker } from '@playwright/test';
-import { makeDashboard, makeDashboardSession, makeHiddenCosts, makeSnapshot, makeSummary, makeTip } from '@paceline/shared/fixtures';
+import { makeDashboard, makeDashboardProject, makeDashboardSession, makeHiddenCosts, makeSnapshot, makeSummary, makeTip } from '@paceline/shared/fixtures';
 
 const here = fileURLToPath(new URL('.', import.meta.url));
 const EXT_DIR = join(here, '..', '.output-test', 'chrome-mv3');
@@ -35,6 +35,7 @@ test.beforeAll(async () => {
         days: [{ day: '2026-10-12', costUsd: 3.2, sessions: 1, byProject: { 'my-app': 3.2 } }],
         byModel: { 'claude-opus-5-5': 3.2 },
         sessions: [makeDashboardSession({ costUsd: 3.2 })],
+        projects: [makeDashboardProject()],
       }),
     }),
   );
@@ -115,7 +116,7 @@ test('dashboard renders the helper data', async () => {
   const page = await context.newPage();
   await page.goto(`chrome-extension://${DEV_EXTENSION_ID}/dashboard.html`);
   await expect(page.getByText('This month: $412 of API value on your $100 plan (4.1×)')).toBeVisible();
-  await expect(page.getByRole('cell', { name: 'my-app' })).toBeVisible();
+  await expect(page.getByRole('cell', { name: 'my-app' }).first()).toBeVisible();
   await expect(page.locator('.legend')).toContainText('my-app');
 });
 
@@ -165,3 +166,36 @@ for (const [path, ready] of [
     expect(serious).toEqual([]);
   });
 }
+
+test('dashboard lists projects with their tokens', async () => {
+  const page = await context.newPage();
+  await page.goto(`chrome-extension://${DEV_EXTENSION_ID}/dashboard.html`);
+  const projects = page.locator('.projects-card');
+  await expect(projects.locator('.project-name', { hasText: 'my-app' })).toBeVisible();
+  await expect(projects.locator('.project-value')).toHaveText('$3.20');
+  await expect(projects.locator('.token-total')).toHaveText('2.3M');
+  await expect(projects.getByRole('img', { name: 'my-app: input 1k, output 20k, cache write 300k, cache read 2M, total 2.3M' })).toBeVisible();
+});
+
+test('clicking a project opens its details', async () => {
+  const page = await context.newPage();
+  await page.goto(`chrome-extension://${DEV_EXTENSION_ID}/dashboard.html`);
+  const row = page.locator('.projects-card').getByRole('button', { name: /my-app/ });
+  const details = page.locator('.project-details');
+  await expect(row).toHaveAttribute('aria-expanded', 'false');
+  await expect(details).toBeHidden();
+  await row.click();
+  await expect(row).toHaveAttribute('aria-expanded', 'true');
+  await expect(details.getByText('figma')).toBeVisible();
+  await expect(details.getByText('superpowers:brainstorming')).toBeVisible();
+  await expect(details.getByText('Expired 3× · 450k tokens written again')).toBeVisible();
+  for (const scheme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme: scheme });
+    const serious = (await new AxeBuilder({ page }).include('.projects-card').analyze()).violations
+      .filter((v) => v.impact === 'serious' || v.impact === 'critical')
+      .map((v) => `${scheme} ${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`);
+    expect(serious).toEqual([]);
+  }
+  await row.press('Enter');
+  await expect(details).toBeHidden();
+});

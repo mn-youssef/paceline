@@ -11,6 +11,7 @@ import { BarList } from './charts/BarList';
 import { Heatmap } from './charts/Heatmap';
 import { StackedBars } from './charts/StackedBars';
 import { HabitsStrip } from './HabitsStrip';
+import { ProjectsCard } from './ProjectsCard';
 import { SessionsTable } from './SessionsTable';
 
 const RANGE_LABEL: Record<DashboardRange, string> = { '7d': 'Last 7 days', '30d': 'Last 30 days' };
@@ -102,6 +103,7 @@ export function Dashboard({ actions }: { actions?: (view: DashboardView) => Reac
             <h2>Daily API value by project</h2>
             <StackedBars stacked={stacked} label={`Daily API value by project, ${RANGE_LABEL[data.range].toLowerCase()}`} />
           </section>
+          <ProjectsCard projects={data.projects} />
           <div className="cards">
             <section className="card">
               <h2>Models</h2>

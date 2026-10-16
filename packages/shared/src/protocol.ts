@@ -165,6 +165,29 @@ export const dashboardSessionSchema = z.object({
 });
 export type DashboardSession = z.infer<typeof dashboardSessionSchema>;
 
+export const dashboardProjectSchema = z.object({
+  name: z.string(),
+  sessions: z.number(),
+  costUsd: z.number(),
+  tokens: z.object({ input: z.number(), output: z.number(), cacheRead: z.number(), cacheWrite: z.number() }),
+  /** Missing from helpers older than the project details. */
+  details: z
+    .object({
+      /** API value in USD per model. */
+      byModel: z.record(z.string(), z.number()),
+      /** Tokens that tool results added to the context, per category, MCP server and skill. */
+      tools: z.record(toolCategorySchema, z.number()),
+      mcp: z.record(z.string(), z.number()),
+      skills: z.record(z.string(), z.number()),
+      /** Times the prompt cache had expired, and the tokens written to the cache again because of it. */
+      cacheMisses: z.number(),
+      cacheMissTokens: z.number(),
+      subagentCostUsd: z.number(),
+    })
+    .optional(),
+});
+export type DashboardProject = z.infer<typeof dashboardProjectSchema>;
+
 export const dashboardDataSchema = z.object({
   range: dashboardRangeSchema,
   days: z.array(z.object({ day: z.string(), costUsd: z.number(), sessions: z.number(), byProject: z.record(z.string(), z.number()) })),
@@ -175,5 +198,7 @@ export const dashboardDataSchema = z.object({
   sessions: z.array(dashboardSessionSchema),
   truncated: z.boolean(),
   indexing: z.boolean(),
+  /** Missing from helpers older than M6. */
+  projects: z.array(dashboardProjectSchema).optional(),
 });
 export type DashboardData = z.infer<typeof dashboardDataSchema>;

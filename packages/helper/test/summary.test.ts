@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { aggregateSessions, computeTotals, median, toSummary, windowCost, windowSums } from '../src/analysis/summary';
 import { emptyHour } from '../src/parse/accumulator';
-import { MIN, SEC, T0, call, results, run, turn } from './fixtures/events';
+import { MIN, SEC, T0, call, results, run, skillText, turn } from './fixtures/events';
 
 describe('median', () => {
   it('handles odd, even and empty lists', () => {
@@ -37,6 +37,15 @@ describe('aggregateSessions', () => {
       mainModel: 'claude-opus-5-5',
     });
     expect(a!.tools.read).toEqual({ calls: 1, outputTokens: 4_000 });
+  });
+
+  it('adds up the skills of the main log and its subagents', () => {
+    const load = (id: string, at: number, sidechain: boolean) => [
+      turn({ id: `a${id}`, at, usage: { input: 1_000, output: 0 }, sidechain, tools: [call(id, 'Skill', null, 'frontend-design')] }),
+      skillText(at + SEC, id, 3_000),
+    ];
+    const [a] = aggregateSessions([run(load('s1', 0, false)), run(load('s2', MIN, true), { subagent: true })]);
+    expect(a!.skills).toEqual({ 'frontend-design': { calls: 2, outputTokens: 6_000 } });
   });
 
   it('skips sessions without billable turns', () => {

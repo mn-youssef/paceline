@@ -25,6 +25,7 @@ export interface SessionAggregate {
   has1h: boolean;
   tools: Record<ToolCategory, Counter>;
   mcp: Record<string, Counter>;
+  skills: Record<string, Counter>;
   residencyUsd: Record<string, number>;
   fileReads: Record<string, number>;
   largestRead: { path: string; tokens: number } | null;
@@ -87,6 +88,14 @@ function dominantModel(costByModel: Record<string, number>): string | null {
   return best;
 }
 
+function addCounters(into: Record<string, Counter>, from: Record<string, Counter>): void {
+  for (const [key, st] of Object.entries(from)) {
+    const t = (into[key] ??= { calls: 0, outputTokens: 0 });
+    t.calls += st.calls;
+    t.outputTokens += st.outputTokens;
+  }
+}
+
 export function aggregateSessions(states: AccState[]): SessionAggregate[] {
   const groups = new Map<string, AccState[]>();
   for (const s of states) groups.set(s.sessionId, [...(groups.get(s.sessionId) ?? []), finalize(s)]);
@@ -116,6 +125,7 @@ export function aggregateSessions(states: AccState[]): SessionAggregate[] {
       has1h: main.has1h,
       tools: Object.fromEntries(TOOL_CATEGORIES.map((c) => [c, { calls: 0, outputTokens: 0 }])) as Record<ToolCategory, Counter>,
       mcp: {},
+      skills: {},
       residencyUsd: {},
       fileReads: {},
       largestRead: null,
@@ -149,11 +159,8 @@ function mergeInto(a: SessionAggregate, s: AccState): void {
     a.tools[c].calls += s.toolStats[c].calls;
     a.tools[c].outputTokens += s.toolStats[c].outputTokens;
   }
-  for (const [server, st] of Object.entries(s.mcpStats)) {
-    const t = (a.mcp[server] ??= { calls: 0, outputTokens: 0 });
-    t.calls += st.calls;
-    t.outputTokens += st.outputTokens;
-  }
+  addCounters(a.mcp, s.mcpStats);
+  addCounters(a.skills, s.skillStats);
   addInto(a.residencyUsd, s.residencyUsd);
   addInto(a.fileReads, s.fileReads);
   if (s.largestRead && (!a.largestRead || s.largestRead.tokens > a.largestRead.tokens)) a.largestRead = s.largestRead;

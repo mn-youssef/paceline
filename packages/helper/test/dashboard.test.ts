@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { MAX_DASHBOARD_SESSIONS, buildDashboard } from '../src/analysis/dashboard';
 import { emptyHour } from '../src/parse/accumulator';
-import { NO_OVERHEAD, makeAgg } from './fixtures/aggregate';
+import { NO_OVERHEAD, makeAgg, toolsWith } from './fixtures/aggregate';
 import { fixedOffsetClock } from './fixtures/clock';
 
 const H = 3_600_000;
 const hourKey = (iso: string) => String(Date.parse(iso) / H);
-const cost = (usd: number) => ({ ...emptyHour(), costUsd: usd });
+const cost = (usd: number, tokens = 0) => ({ ...emptyHour(), costUsd: usd, inputTokens: tokens, outputTokens: tokens / 10 });
 const NOW = Date.parse('2026-10-13T12:00:00Z'); // Tuesday 14:00 at UTC+2
 const CLOCK = fixedOffsetClock(120);
 const none = () => NO_OVERHEAD;
@@ -16,7 +16,7 @@ const shop = makeAgg({
   projectPath: '/x/shop',
   costUsd: 5,
   costByModel: { 'claude-opus-5-5': 5 },
-  hourly: { [hourKey('2026-10-12T21:00:00Z')]: cost(2), [hourKey('2026-10-12T22:00:00Z')]: cost(3) },
+  hourly: { [hourKey('2026-10-12T21:00:00Z')]: cost(2, 1000), [hourKey('2026-10-12T22:00:00Z')]: cost(3, 2000) },
 });
 const web = makeAgg({
   sessionId: 'b',
@@ -27,6 +27,34 @@ const web = makeAgg({
 });
 
 describe('buildDashboard', () => {
+  it('details each project: models, tools, MCP servers and skills by the range share, cache and subagents exactly', () => {
+    const app = (sessionId: string) =>
+      makeAgg({
+        sessionId,
+        projectPath: '/x/app',
+        costUsd: 10,
+        costByModel: { 'claude-opus-5-5': 8, 'claude-haiku-5-5': 2 },
+        hourly: {
+          [hourKey('2026-10-13T08:00:00Z')]: { ...cost(5), cacheMisses: 2, cacheMissTokens: 40_000, subagentCostUsd: 1 },
+          [hourKey('2026-09-01T08:00:00Z')]: { ...cost(5), cacheMisses: 9 },
+        },
+        tools: toolsWith({ read: 1_000, mcp: 400 }),
+        mcp: { figma: { calls: 2, outputTokens: 400 } },
+        skills: { 'frontend-design': { calls: 1, outputTokens: 4_000 } },
+      });
+    const d = buildDashboard([app('a'), app('b')], '7d', NOW, none, CLOCK);
+    expect(d.projects).toHaveLength(1);
+    expect(d.projects![0]!.details).toEqual({
+      byModel: { 'claude-opus-5-5': 8, 'claude-haiku-5-5': 2 },
+      tools: { read: 1_000, edit: 0, bash: 0, search: 0, web: 0, mcp: 400, agent: 0, other: 0 },
+      mcp: { figma: 400 },
+      skills: { 'frontend-design': 4_000 },
+      cacheMisses: 4,
+      cacheMissTokens: 80_000,
+      subagentCostUsd: 2,
+    });
+  });
+
   it('buckets by the local clock', () => {
     const d = buildDashboard([shop, web], '7d', NOW, none, CLOCK);
     expect(d.days.map((x) => x.day)).toEqual(['2026-10-07', '2026-10-08', '2026-10-09', '2026-10-10', '2026-10-11', '2026-10-12', '2026-10-13']);
@@ -45,6 +73,25 @@ describe('buildDashboard', () => {
     const month = buildDashboard([shop, web], '30d', NOW, none, CLOCK);
     expect(month.sessions.map((s) => [s.sessionId, s.costUsd])).toEqual([['b', 10], ['a', 5]]);
     expect(month.days.find((x) => x.day === '2026-10-01')?.costUsd).toBe(6);
+  });
+
+  it('lists the projects used in the range, most expensive first', () => {
+    expect(buildDashboard([shop, web], '7d', NOW, none, CLOCK).projects?.map((p) => [p.name, p.sessions, p.costUsd])).toEqual([['shop', 1, 5]]);
+    expect(buildDashboard([shop, web], '30d', NOW, none, CLOCK).projects?.map((p) => [p.name, p.sessions, p.costUsd])).toEqual([
+      ['web', 1, 10],
+      ['shop', 1, 5],
+    ]);
+  });
+
+  it('adds up to the same total as the days', () => {
+    const d = buildDashboard([shop, web], '30d', NOW, none, CLOCK);
+    const byProject = d.projects!.reduce((s, p) => s + p.costUsd, 0);
+    expect(byProject).toBeCloseTo(d.days.reduce((s, x) => s + x.costUsd, 0));
+  });
+
+  it('reports the tokens of the range', () => {
+    const d = buildDashboard([shop, web], '7d', NOW, none, CLOCK);
+    expect(d.projects?.[0]?.tokens).toEqual({ input: 3000, output: 300, cacheRead: 0, cacheWrite: 0 });
   });
 
   it('caps the table at 500 sessions', () => {

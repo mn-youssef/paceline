@@ -4,6 +4,8 @@ export interface ToolCall {
   id: string;
   name: string;
   filePath: string | null;
+  /** The skill a Skill call loads. */
+  skill: string | null;
 }
 
 interface EventBase {
@@ -25,6 +27,8 @@ export interface UserEvent extends EventBase {
   kind: 'user';
   results: { toolUseId: string; tokens: number }[];
   command: string | null;
+  /** The text of a loaded skill, which Claude Code writes as a separate message linked to the Skill call. */
+  skillText: { toolUseId: string; tokens: number } | null;
 }
 
 export interface CompactEvent extends EventBase {
@@ -81,7 +85,12 @@ function parseAssistant(d: Json, base: EventBase): AssistantEvent | null {
     for (const b of m.content) {
       if (!isObj(b) || b.type !== 'tool_use' || typeof b.id !== 'string' || typeof b.name !== 'string') continue;
       const input = isObj(b.input) ? b.input : {};
-      tools.push({ id: b.id, name: b.name, filePath: str(input.file_path) ?? str(input.notebook_path) });
+      tools.push({
+        id: b.id,
+        name: b.name,
+        filePath: str(input.file_path) ?? str(input.notebook_path),
+        skill: b.name === 'Skill' ? str(input.skill) : null,
+      });
     }
   }
   return {
@@ -126,7 +135,8 @@ function parseUser(d: Json, base: EventBase): UserEvent {
     }
   }
   const match = texts.map((t) => COMMAND.exec(t)).find((m) => m !== null);
-  return { ...base, kind: 'user', results, command: match ? match[1]! : null };
+  const skillText = d.isMeta === true && typeof d.sourceToolUseID === 'string' ? { toolUseId: d.sourceToolUseID, tokens: estimateTokens(content) } : null;
+  return { ...base, kind: 'user', results, command: match ? match[1]! : null, skillText };
 }
 
 /** ~4 characters per token for text; a flat estimate per image. */

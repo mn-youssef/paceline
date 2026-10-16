@@ -272,6 +272,16 @@ Open it with **Dashboard** in the popup footer. Switch between **Last 7 days** a
 - **Models:** API value by model family.
 - **Tool output:** tokens returned by each kind of tool (read, edit, bash, search, web, MCP, agent, other).
 - **When you use Claude Code:** a weekday × hour heatmap, in your local time. Darker means more.
+- **Projects:** one row per project used in the range, most expensive first: its sessions, its API value, and a bar split into input, output, cache write and cache read tokens, with the total. Bar lengths compare projects. A subagent's work counts for the project its session started in.
+
+  Click a project to open its details:
+  - **Tokens:** each token type with its share of the project's total.
+  - **Models:** API value per model family.
+  - **Tools (tokens returned):** how many tokens each kind of tool (read, edit, bash, search, web, MCP, agent, other) put into the context.
+  - **MCP servers** and **Skills:** the tokens each server returned and each skill loaded, largest first. Plugin skills appear as `plugin:skill`.
+  - **Cache and subagents:** how many times the prompt cache had expired and how many tokens were written to it again, and the share of the cost spent by subagents.
+
+  Tokens, cache expiries and subagent cost are exact for the range. Models, tools, MCP servers and skills are counted per session, so a session that is only partly in the range counts in proportion to its cost in the range. If a project says to update the helper, run `npx paceline@latest install`.
 - **Sessions:** every session in the range, with project, start, duration, turns, API value, grade and tips. Sort by date, duration, API value or grade by clicking the column header. At most the 500 most expensive sessions are listed.
 - **Export CSV:** downloads the rows as shown, in the order shown.
 

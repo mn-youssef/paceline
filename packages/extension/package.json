@@ -20,6 +20,7 @@
     "zod": "4.6.7"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
     "@playwright/test": "1.64.0",
     "@types/canvas-confetti": "1.9.0",
     "@types/node": "22.20.5",

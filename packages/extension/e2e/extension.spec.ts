@@ -2,6 +2,7 @@ import { chmodSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from '
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import AxeBuilder from '@axe-core/playwright';
 import { chromium, expect, test, type BrowserContext, type Worker } from '@playwright/test';
 import { makeDashboard, makeDashboardSession, makeHiddenCosts, makeSnapshot, makeSummary, makeTip } from '@paceline/shared/fixtures';
 
@@ -146,3 +147,19 @@ test('budget input saves only when you leave the field', async () => {
   await expect(input).toHaveValue('20');
   expect(await stored()).toBe(20);
 });
+
+for (const [path, ready] of [
+  ['popup.html', 'my-app'],
+  ['options.html', 'Paceline options'],
+  ['dashboard.html', 'This month'],
+] as const) {
+  test(`no serious accessibility problems on ${path}`, async () => {
+    const page = await context.newPage();
+    await page.goto(`chrome-extension://${DEV_EXTENSION_ID}/${path}`);
+    await expect(page.getByText(ready).first()).toBeVisible();
+    const serious = (await new AxeBuilder({ page }).analyze()).violations
+      .filter((v) => v.impact === 'serious' || v.impact === 'critical')
+      .map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`);
+    expect(serious).toEqual([]);
+  });
+}

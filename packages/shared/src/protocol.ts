@@ -170,7 +170,6 @@ export const dashboardProjectSchema = z.object({
   sessions: z.number(),
   costUsd: z.number(),
   tokens: z.object({ input: z.number(), output: z.number(), cacheRead: z.number(), cacheWrite: z.number() }),
-  monthToDateUsd: z.number(),
 });
 export type DashboardProject = z.infer<typeof dashboardProjectSchema>;
 

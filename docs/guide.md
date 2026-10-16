@@ -272,11 +272,7 @@ Open it with **Dashboard** in the popup footer. Switch between **Last 7 days** a
 - **Models:** API value by model family.
 - **Tool output:** tokens returned by each kind of tool (read, edit, bash, search, web, MCP, agent, other).
 - **When you use Claude Code:** a weekday × hour heatmap, in your local time. Darker means more.
-- **Projects:** one row per project for the range: sessions, input, output, cache write and cache read tokens, the total, and the API value. A subagent's work counts for the project its session started in.
-  - **Budget (this month):** type a monthly amount in dollars and leave the field to save it; clear it to remove the budget.
-  - The bar shows this month's API value against the budget: green below 80 %, orange from 80 % to 100 %, red when over (with "over by $X").
-  - There are no notifications for budgets; you see them here.
-  - Sort by total tokens, API value or budget use. With a helper older than this version, the table asks you to update the helper.
+- **Projects:** one row per project used in the range, most expensive first: its sessions, its API value, and a bar split into input, output, cache write and cache read tokens, with the total. Bar lengths compare projects. A subagent's work counts for the project its session started in.
 - **Sessions:** every session in the range, with project, start, duration, turns, API value, grade and tips. Sort by date, duration, API value or grade by clicking the column header. At most the 500 most expensive sessions are listed.
 - **Export CSV:** downloads the rows as shown, in the order shown.
 
@@ -322,7 +318,6 @@ Open Options from the popup footer, or right-click the Paceline icon and choose 
 | **Daily budget** | 14 % of the weekly limit | Used for the habit line, the streak and the habits strip |
 | **My plan** | Max 5x ($100/month) | Pro ($20), Max 5x ($100), Max 20x ($200) or API. Used for the value card |
 | **Show my top project's name on share cards** | Off | Adds the top project to the share card |
-| **Project budgets** | None | Monthly API-value budget per project, set in the dashboard's Projects table |
 
 ## 6. The claude.ai fallback
 

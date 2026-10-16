@@ -167,19 +167,12 @@ for (const [path, ready] of [
   });
 }
 
-test('dashboard lists projects and saves a budget', async () => {
-  const sw = await worker();
-  const budget = () =>
-    sw.evaluate(async () => ((await (globalThis as any).chrome.storage.local.get('settings')).settings?.projectBudgets?.['my-app'] ?? null) as number | null);
+test('dashboard lists projects with their tokens', async () => {
   const page = await context.newPage();
   await page.goto(`chrome-extension://${DEV_EXTENSION_ID}/dashboard.html`);
   const projects = page.locator('.projects-card');
   await expect(projects.locator('.project-name', { hasText: 'my-app' })).toBeVisible();
+  await expect(projects.locator('.project-value')).toHaveText('$3.20');
   await expect(projects.locator('.token-total')).toHaveText('2.3M');
-  await projects.getByRole('button', { name: 'Set budget' }).click();
-  const input = page.getByRole('spinbutton', { name: 'Monthly budget for my-app, in dollars' });
-  await input.fill('100');
-  await input.blur();
-  await expect.poll(budget).toBe(100);
-  await expect(projects).toContainText('$12.0 of $100 this month');
+  await expect(projects.getByRole('img', { name: 'my-app: input 1k, output 20k, cache write 300k, cache read 2M, total 2.3M' })).toBeVisible();
 });

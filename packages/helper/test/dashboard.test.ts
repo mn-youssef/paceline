@@ -47,11 +47,11 @@ describe('buildDashboard', () => {
     expect(month.days.find((x) => x.day === '2026-10-01')?.costUsd).toBe(6);
   });
 
-  it('totals each project for the range and the month', () => {
-    const d = buildDashboard([shop, web], '7d', NOW, none, CLOCK);
-    expect(d.projects?.map((p) => [p.name, p.sessions, p.costUsd, p.monthToDateUsd])).toEqual([
-      ['shop', 1, 5, 5],
-      ['web', 0, 0, 6], // no use in the last 7 days, but this month's spend keeps it listed
+  it('lists the projects used in the range, most expensive first', () => {
+    expect(buildDashboard([shop, web], '7d', NOW, none, CLOCK).projects?.map((p) => [p.name, p.sessions, p.costUsd])).toEqual([['shop', 1, 5]]);
+    expect(buildDashboard([shop, web], '30d', NOW, none, CLOCK).projects?.map((p) => [p.name, p.sessions, p.costUsd])).toEqual([
+      ['web', 1, 10],
+      ['shop', 1, 5],
     ]);
   });
 

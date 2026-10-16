@@ -41,7 +41,7 @@ It has two parts that work together:
 - **Dashboard** for 7 or 30 days:
   - daily API value by project, model mix, tool output, and an hour × weekday heatmap;
   - a sortable sessions table with CSV export.
-- **Projects**: tokens (input, output, cache) and API value per project for 7 or 30 days, with an optional monthly budget per project.
+- **Projects**: tokens (input, output, cache) and API value per project for 7 or 30 days.
 
 **Habits**
 - A **daily budget** as a share of your weekly limit, with a streak of days within budget.

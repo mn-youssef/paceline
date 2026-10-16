@@ -158,22 +158,16 @@ const sessions: DashboardSession[] = [
   row({ projectName: 'docs-site', daysBack: 1, durationMin: 25, turns: 18, costUsd: 1.12, score: 96, grade: 'A' }),
 ];
 
-// Per project: the range's cost from the daily data, tokens roughly in proportion (cache reads dominate),
-// and this month's spend from the days of the current month.
-const monthStart = dayKey(new Date(new Date(now).getFullYear(), new Date(now).getMonth(), 1, 12).getTime());
+// Per project: the range's cost from the daily data, tokens roughly in proportion (cache reads dominate).
 const projectRows = projects.map((name, k) => {
   const costUsd = days.reduce((s, d) => s + (d.byProject[name] ?? 0), 0);
-  const monthToDateUsd = days.filter((d) => d.day >= monthStart).reduce((s, d) => s + (d.byProject[name] ?? 0), 0);
   return {
     name,
     sessions: Math.max(1, Math.round(28 * weights[k]!)),
     costUsd,
     tokens: { input: Math.round(costUsd * 3_000), output: Math.round(costUsd * 25_000), cacheRead: Math.round(costUsd * 900_000), cacheWrite: Math.round(costUsd * 60_000) },
-    monthToDateUsd,
   };
 });
-/** Two budgets, one comfortably under and one over, so the screenshot shows both. */
-export const projectBudgets: Record<string, number> = { 'web-app': 250, 'api-server': 80 };
 
 const dashboard = makeDashboard({
   range: '30d',
@@ -248,8 +242,8 @@ export async function launchWithFakeHelper(opts: { deviceScaleFactor?: number } 
   // Let the first refresh finish, then seed the history it would have built up over time.
   await worker.evaluate(() => new Promise((r) => setTimeout(r, 1_500)));
   await worker.evaluate(
-    ([r, d, b]) => (globalThis as unknown as { chrome: { storage: { local: { set(v: object): Promise<void> } } } }).chrome.storage.local.set({ readings: r, dailyUsage: d, settings: { projectBudgets: b } }),
-    [readings(), dailyUsage, projectBudgets] as const,
+    ([r, d]) => (globalThis as unknown as { chrome: { storage: { local: { set(v: object): Promise<void> } } } }).chrome.storage.local.set({ readings: r, dailyUsage: d }),
+    [readings(), dailyUsage] as const,
   );
   return { context, extensionId: EXTENSION_ID };
 }

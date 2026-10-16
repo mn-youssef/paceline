@@ -121,7 +121,6 @@ export function makeDashboardProject(over: Partial<DashboardProject> = {}): Dash
     sessions: 1,
     costUsd: 3.2,
     tokens: { input: 1_000, output: 20_000, cacheRead: 2_000_000, cacheWrite: 300_000 },
-    monthToDateUsd: 12,
     ...over,
   };
 }

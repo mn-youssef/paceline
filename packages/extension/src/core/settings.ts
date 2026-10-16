@@ -13,8 +13,6 @@ export interface Settings {
   weeklyDigest: boolean;
   plan: Plan;
   shareShowProjects: boolean;
-  /** Monthly API-value budget in US dollars, by project name. */
-  projectBudgets: Record<string, number>;
 }
 
 export type StoredSettings = Partial<Omit<Settings, 'quietHours'>> & { quietHours?: Partial<Settings['quietHours']> };
@@ -31,7 +29,6 @@ export const DEFAULT_SETTINGS: Settings = {
   weeklyDigest: true,
   plan: 'max5',
   shareShowProjects: false,
-  projectBudgets: {},
 };
 
 export function mergeSettings(stored: StoredSettings | undefined): Settings {
@@ -72,12 +69,4 @@ export function parseBudget(text: string, previous: number): number {
   const n = Number(trimmed);
   if (trimmed === '' || !Number.isFinite(n)) return previous;
   return Math.min(100, Math.max(1, n));
-}
-
-/** A project budget typed on the dashboard: empty removes it; negative or invalid input keeps the previous value. */
-export function parseProjectBudget(text: string, previous: number | null): number | null {
-  const trimmed = text.trim();
-  if (trimmed === '') return null;
-  const n = Number(trimmed);
-  return Number.isFinite(n) && n >= 0 ? n : previous;
 }

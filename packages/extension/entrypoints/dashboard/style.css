@@ -108,9 +108,7 @@ button:focus-visible, .button:focus-visible, svg:focus-visible { outline: 2px so
 .dialog-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .button.disabled { pointer-events: none; opacity: 0.5; }
 
-/* Projects: one row per project with a token bar split by type, and its monthly budget inside the row. */
-.tabs button[aria-pressed='true'] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
-.card-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 12px; }
+/* Projects: one row per project with a token bar split by type. */
 .token-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; color: var(--muted); }
 .token-legend li { display: flex; align-items: center; gap: 6px; }
 .tok-input { background: var(--c0); }
@@ -132,15 +130,3 @@ button:focus-visible, .button:focus-visible, svg:focus-visible { outline: 2px so
 .token-bar > span:last-child { border-radius: 0 4px 4px 0; }
 .token-bar > span:only-child { border-radius: 4px; }
 .token-total { min-width: 56px; text-align: right; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.budget-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; font-size: 12px; }
-.budget-text.over { color: var(--red-text); }
-.budget-track { flex: 1; max-width: 220px; min-width: 80px; height: 4px; border-radius: 2px; background: var(--track); overflow: hidden; }
-.budget-track > span { display: block; height: 100%; }
-.budget-track.tone-ok > span { background: var(--green); }
-.budget-track.tone-near > span { background: var(--orange); }
-.budget-track.tone-over > span { background: var(--red); }
-.link-button { all: unset; cursor: pointer; color: var(--orange-text); text-decoration: underline; text-underline-offset: 2px; }
-.link-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
-.budget-input { display: flex; align-items: center; gap: 6px; }
-.budget-input input { width: 84px; font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 2px 6px; }
-.budget-input input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }

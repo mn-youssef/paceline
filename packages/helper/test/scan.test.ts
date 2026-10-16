@@ -33,7 +33,8 @@ describe('scan', () => {
     expect(r.states.filter((s) => s.isSubagentFile).map((s) => s.sessionId)).toEqual(['s1']);
   });
 
-  it('skips a log it cannot read and still indexes the rest', () => {
+  // chmod 000 makes a file unreadable only on POSIX, and not for root.
+  it.skipIf(process.platform === 'win32' || process.getuid?.() === 0)('skips a log it cannot read and still indexes the rest', () => {
     const home = tempHome();
     const bad = writeLog(home, 'p', 'bad', turns(2));
     writeLog(home, 'p', 'good', turns(3));

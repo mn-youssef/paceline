@@ -3,6 +3,7 @@ import { TOOL_CATEGORIES, type DashboardSession, type ToolCategory } from '@pace
 import { makeDashboardSession } from '@paceline/shared/fixtures';
 import {
   averageGrade,
+  OTHER_KEY,
   categoryBars,
   habitCells,
   heatLevel,
@@ -22,14 +23,19 @@ describe('stackByProject', () => {
   it('folds projects beyond the top five into Other', () => {
     const s = stackByProject([day('2026-10-12', { a: 6, b: 5, c: 4, d: 3, e: 2, f: 1 }), day('2026-10-13', { g: 0.5, a: 1 })]);
     expect(s.series).toEqual([
-      { name: 'a', total: 7 },
-      { name: 'b', total: 5 },
-      { name: 'c', total: 4 },
-      { name: 'd', total: 3 },
-      { name: 'e', total: 2 },
-      { name: 'Other', total: 1.5 },
+      { key: 'a', name: 'a', total: 7 },
+      { key: 'b', name: 'b', total: 5 },
+      { key: 'c', name: 'c', total: 4 },
+      { key: 'd', name: 'd', total: 3 },
+      { key: 'e', name: 'e', total: 2 },
+      { key: OTHER_KEY, name: 'Other', total: 1.5 },
     ]);
     expect(s.days[1]).toEqual({ day: '2026-10-13', values: [1, 0, 0, 0, 0, 0.5] });
+  });
+
+  it('keeps a real project called "Other" apart from the fold-in', () => {
+    const s = stackByProject([day('2026-10-12', { Other: 9, a: 6, b: 5, c: 4, d: 3, e: 2, f: 1 })]);
+    expect(s.series.map((x) => x.key)).toEqual(['Other', 'a', 'b', 'c', 'd', OTHER_KEY]);
   });
 
   it('has no Other series with five projects or fewer', () => {
@@ -63,11 +69,22 @@ describe('sortSessions', () => {
 
 describe('toCsv', () => {
   it('escapes commas, quotes and newlines', () => {
-    const csv = toCsv([makeDashboardSession({ projectName: 'a,"b"\nc', tips: [{ ruleId: 'x', title: 'Long, long context' }] })]);
-    const [header, line, end] = csv.split('\r\n');
+    const startedAt = new Date(2026, 9, 12, 9, 5).getTime();
+    const csv = toCsv([makeDashboardSession({ projectName: 'a,"b"\nc', startedAt, tips: [{ ruleId: 'x', title: 'Long, long context' }] })]);
+    const [header, line, end] = csv.replace(/^\uFEFF/, '').split('\r\n');
     expect(header).toBe('project,started,duration_min,turns,api_value_usd,grade,score,tips');
-    expect(line).toBe('"a,""b""\nc",2026-10-12T09:00:00.000Z,60,12,2.00,B,80,"Long, long context"');
+    expect(line).toBe('"a,""b""\nc",2026-10-12 09:05,60,12,2.00,B,80,"Long, long context"');
     expect(end).toBe('');
+  });
+
+  it('starts with a byte-order mark for spreadsheets', () => {
+    expect(toCsv([]).startsWith('\uFEFFproject,')).toBe(true);
+  });
+
+  it('neutralises a leading tab or carriage return', () => {
+    const lines = toCsv([makeDashboardSession({ projectName: '\t=1' }), makeDashboardSession({ projectName: '\r=1' })]).split('\r\n');
+    expect(lines[1]!.startsWith("'\t=1,")).toBe(true);
+    expect(lines[2]!.startsWith(`"'\r=1",`)).toBe(true);
   });
 
   it('keeps spreadsheet formulas inert', () => {

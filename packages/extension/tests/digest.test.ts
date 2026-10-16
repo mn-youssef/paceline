@@ -60,6 +60,16 @@ describe('buildDigest', () => {
     });
   });
 
+  it('counts sessions active last week, including one that started the Sunday before', () => {
+    const d = weeks();
+    const late = { ...d.sessions[0]!, sessionId: 'd', startedAt: at(9, 4, 22), endedAt: at(9, 5, 1) };
+    expect(buildDigest({ ...d, sessions: [...d.sessions, late] }, {}, 14, WED)?.message).toContain('across 3 sessions');
+  });
+
+  it('marks the count when the session list was capped', () => {
+    expect(buildDigest({ ...weeks(), truncated: true }, {}, 14, WED)?.message).toContain('across 2+ sessions');
+  });
+
   it('has nothing to say about a week without use', () => {
     expect(buildDigest(makeDashboard({ range: '30d' }), {}, 14, WED)).toBeNull();
   });

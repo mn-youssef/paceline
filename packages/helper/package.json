@@ -4,13 +4,22 @@
   "description": "Local helper for Paceline, the usage meter for Claude Code",
   "license": "MIT",
   "type": "module",
-  "bin": { "paceline": "dist/paceline.cjs" },
-  "files": ["dist/paceline.cjs", "README.md"],
-  "engines": { "node": ">=18" },
+  "bin": {
+    "paceline": "release/paceline.cjs"
+  },
+  "files": [
+    "release/paceline.cjs",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "build": "node build.mjs",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit -p ."
+    "typecheck": "tsc --noEmit -p .",
+    "prepublishOnly": "node build.mjs --release"
   },
   "devDependencies": {
     "@paceline/shared": "workspace:*",

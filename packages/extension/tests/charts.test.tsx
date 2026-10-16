@@ -75,3 +75,35 @@ describe('chart sizing', () => {
     }
   });
 });
+
+describe('StackedBars with a project named Other', () => {
+  it('keeps the real project and the fold-in as separate legend entries', () => {
+    const stacked = stackByProject([{ day: '2026-10-12', costUsd: 30, sessions: 1, byProject: { Other: 9, a: 6, b: 5, c: 4, d: 3, e: 2, f: 1 } }]);
+    const html = renderToString(<StackedBars stacked={stacked} label="x" />);
+    expect(html.match(/<span class="legend-name">Other<\/span>/g)).toHaveLength(2);
+    expect(html.match(/swatch s-other/g)).toHaveLength(1);
+  });
+});
+
+describe('chart data for screen readers', () => {
+  it('gives the stacked bars a hidden table with one row per day', () => {
+    const stacked = stackByProject([
+      { day: '2026-10-12', costUsd: 3, sessions: 2, byProject: { shop: 2, web: 1 } },
+      { day: '2026-10-13', costUsd: 0, sessions: 0, byProject: {} },
+    ]);
+    const html = renderToString(<StackedBars stacked={stacked} label="Daily API value by project" />);
+    expect(html).toContain('<div class="sr-only"><table>');
+    expect(html).toContain('<caption>Daily API value by project</caption>');
+    expect(html).toContain('<th scope="row">2026-10-12</th><td>$2.00</td><td>$1.00</td>');
+  });
+
+  it('gives the heatmap a hidden table with one row per weekday', () => {
+    const heatmap = Array.from({ length: 7 }, () => new Array<number>(24).fill(0));
+    heatmap[1]![23] = 2;
+    const html = renderToString(<Heatmap heatmap={heatmap} label="API value by weekday and hour" />);
+    expect(html).toContain('<div class="sr-only"><table>');
+    const monday = /<tr><th scope="row">Mon<\/th>(.*?)<\/tr>/.exec(html)![1]!;
+    expect(monday.match(/<td>/g)).toHaveLength(24);
+    expect(monday.endsWith('<td>$2.00</td>')).toBe(true);
+  });
+});

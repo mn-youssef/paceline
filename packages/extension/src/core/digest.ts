@@ -58,7 +58,8 @@ export function buildDigest(dash: DashboardData, daily: DailyUsage, budgetPct: n
   if (value <= 0) return null;
   const prev = dash.days.filter((d) => prevKeys.has(d.day)).reduce((s, d) => s + d.costUsd, 0);
   const change = prev > 0 ? Math.round(((value - prev) / prev) * 100) : null;
-  const sessions = dash.sessions.filter((s) => s.startedAt >= lastStart && s.startedAt < thisMonday);
+  // Sessions active during last week, including one that started before it.
+  const sessions = dash.sessions.filter((s) => s.endedAt >= lastStart && s.startedAt < thisMonday);
 
   const byProject = new Map<string, number>();
   for (const d of lastDays) for (const [p, c] of Object.entries(d.byProject)) byProject.set(p, (byProject.get(p) ?? 0) + c);
@@ -68,7 +69,7 @@ export function buildDigest(dash: DashboardData, daily: DailyUsage, budgetPct: n
 
   const n = sessions.length;
   const parts = [
-    `${formatUsd(value)} of API value across ${n} session${n === 1 ? '' : 's'}${change === null ? '' : ` (${change >= 0 ? '+' : ''}${change}% vs the week before)`}.`,
+    `${formatUsd(value)} of API value across ${n}${dash.truncated ? '+' : ''} session${n === 1 && !dash.truncated ? '' : 's'}${change === null ? '' : ` (${change >= 0 ? '+' : ''}${change}% vs the week before)`}.`,
   ];
   if (top) parts.push(`Top project: ${top}.`);
   if (tip) parts.push(`Most common tip: ${tip}.`);

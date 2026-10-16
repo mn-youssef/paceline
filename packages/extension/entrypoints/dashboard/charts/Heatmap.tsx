@@ -35,6 +35,31 @@ export function Heatmap({ heatmap, label }: { heatmap: number[][]; label: string
           </g>
         ))}
       </svg>
+      {/* The same numbers as a table, for screen readers. */}
+      {/* A table ignores overflow, so the hiding goes on a wrapper. */}
+      <div className="sr-only">
+        <table>
+          <caption>{label}</caption>
+          <thead>
+            <tr>
+              <th scope="col">Day</th>
+              {Array.from({ length: 24 }, (_, h) => (
+                <th key={h} scope="col">{`${pad(h)}:00`}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {ORDER.map((wd) => (
+              <tr key={wd}>
+                <th scope="row">{DAY_NAMES[wd]}</th>
+                {(heatmap[wd] ?? []).map((v, h) => (
+                  <td key={h}>{formatUsd(v)}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </figure>
   );
 }

@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react';
 import { browser } from 'wxt/browser';
 import { CLAUDE_AI_ORIGIN } from '@paceline/shared';
 import { requestRefresh } from '../../src/background/messages';
-import { mergeSettings, parseThresholds, type BadgeWindow, type Plan, type Settings } from '../../src/core/settings';
+import { mergeSettings, parseBudget, parseThresholds, type BadgeWindow, type Plan, type Settings } from '../../src/core/settings';
 import { chromeStore } from '../../src/platform/chrome';
 import type { FallbackStatus } from '../../src/platform/fallback';
 
 export function Options() {
   const [s, setS] = useState<Settings | null>(null);
   const [thresholdText, setThresholdText] = useState('');
+  const [budgetText, setBudgetText] = useState('');
   const [permitted, setPermitted] = useState(false);
   const [status, setStatus] = useState<FallbackStatus | null>(null);
 
@@ -17,6 +18,7 @@ export function Options() {
       const loaded = mergeSettings(await chromeStore.get('settings'));
       setS(loaded);
       setThresholdText(loaded.thresholds.join(', '));
+      setBudgetText(String(loaded.dailyBudgetPct));
       setPermitted(await browser.permissions.contains({ origins: [CLAUDE_AI_ORIGIN] }));
       setStatus((await chromeStore.get('fallbackStatus')) ?? null);
     })();
@@ -39,6 +41,13 @@ export function Options() {
       if (!granted) return;
     }
     await save({ fallbackEnabled: on });
+  };
+
+  // Saved when the field is left (or on Enter), so typing "20" never stores 2 on the way.
+  const commitBudget = () => {
+    const budget = parseBudget(budgetText, s.dailyBudgetPct);
+    setBudgetText(String(budget));
+    if (budget !== s.dailyBudgetPct) void save({ dailyBudgetPct: budget });
   };
 
   const commitThresholds = () => {
@@ -127,8 +136,12 @@ export function Options() {
             type="number"
             min={1}
             max={100}
-            value={s.dailyBudgetPct}
-            onChange={(e) => void save({ dailyBudgetPct: Math.min(100, Math.max(1, Number(e.target.value) || 1)) })}
+            value={budgetText}
+            onChange={(e) => setBudgetText(e.target.value)}
+            onBlur={commitBudget}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') e.currentTarget.blur();
+            }}
           />
           % of the weekly limit
         </label>

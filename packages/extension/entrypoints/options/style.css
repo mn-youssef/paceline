@@ -9,5 +9,5 @@ label { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
 input, select { font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 3px 6px; }
 input[type='number'] { width: 64px; }
 input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.tag { font-size: 11px; font-weight: 500; color: var(--orange); border: 1px solid var(--orange); border-radius: 999px; padding: 0 7px; }
-.warn { color: var(--red); font-size: 12px; }
+.tag { font-size: 11px; font-weight: 500; color: var(--orange-text); border: 1px solid var(--orange); border-radius: 999px; padding: 0 7px; }
+.warn { color: var(--red-text); font-size: 12px; }

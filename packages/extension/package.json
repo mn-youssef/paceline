@@ -7,10 +7,10 @@
     "dev": "wxt",
     "build": "wxt build",
     "zip": "PACELINE_STORE=1 wxt zip",
-    "test": "vitest run",
+    "test": "wxt prepare && vitest run",
     "typecheck": "wxt prepare && tsc --noEmit -p .",
-    "e2e": "wxt build && playwright test",
-    "screenshots": "wxt build && playwright test --config playwright.screenshots.config.ts"
+    "e2e": "PACELINE_TEST_BUILD=1 wxt build && playwright test",
+    "screenshots": "PACELINE_TEST_BUILD=1 wxt build && playwright test --config playwright.screenshots.config.ts"
   },
   "dependencies": {
     "@paceline/shared": "workspace:*",
@@ -20,6 +20,7 @@
     "zod": "4.6.7"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
     "@playwright/test": "1.64.0",
     "@types/canvas-confetti": "1.9.0",
     "@types/node": "22.20.5",

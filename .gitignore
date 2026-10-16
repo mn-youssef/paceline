@@ -2,6 +2,7 @@ node_modules/
 dist/
 .output/
 .output-store/
+.output-test/
 .wxt/
 test-results/
 playwright-report/
@@ -10,3 +11,4 @@ playwright-report/
 .docs
 .superpowers
 docs/superpowers
+packages/helper/release/

@@ -8,6 +8,11 @@
   --accent: #ea580c;
   --green: #16a34a;
   --orange: #ea580c;
+  /* Orange as text, and fills under white text: #ea580c is only 3.56:1 on white. */
+  --orange-text: #c2410c;
+  --green-text: #15803d;
+  --red-text: #b91c1c;
+  --accent-fill: #c2410c;
   --red: #dc2626;
   --grey: #a8a29e;
   --opus: #7c3aed;
@@ -27,6 +32,9 @@
     --muted: #a8a29e;
     --border: #44403c;
     --track: #44403c;
+    --orange-text: #fb923c;
+    --green-text: #4ade80;
+    --red-text: #f87171;
   }
 }
 
@@ -37,8 +45,11 @@ button { font: inherit; }
 code { font: 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 .muted { color: var(--muted); font-size: 12px; }
 .grade { display: inline-block; margin-left: 6px; min-width: 18px; padding: 0 4px; border-radius: 4px; font-size: 11px; font-weight: 700; text-align: center; color: #fff; }
-.grade-A { background: var(--green); }
-.grade-B { background: #65a30d; }
-.grade-C { background: #ca8a04; }
-.grade-D { background: var(--orange); }
-.grade-F { background: var(--red); }
+/* White text needs 4.5:1 contrast (WCAG AA) on every grade colour. */
+.grade-A { background: #15803d; }
+.grade-B { background: #4d7c0f; }
+.grade-C { background: #a16207; }
+.grade-D { background: #c2410c; }
+.grade-F { background: #b91c1c; }
+/* Visible to screen readers only. */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }

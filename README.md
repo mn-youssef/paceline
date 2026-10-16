@@ -1,5 +1,7 @@
 # Paceline — usage meter for Claude Code
 
+[![CI](https://github.com/mn-youssef/paceline/actions/workflows/ci.yml/badge.svg)](https://github.com/mn-youssef/paceline/actions/workflows/ci.yml)
+
 Paceline is a browser extension for Chrome, Edge, Brave and Arc. It shows how much of your Claude Code usage limit you have used, warns you before you hit it, and tells you which sessions used your tokens and why.
 
 It has two parts that work together:
@@ -269,10 +271,12 @@ pnpm --filter paceline build                # helper → packages/helper/dist/pa
 node packages/helper/dist/paceline.cjs install
 pnpm --filter @paceline/extension build     # load packages/extension/.output/chrome-mv3 unpacked
 pnpm --filter @paceline/extension e2e       # Playwright smoke test (macOS/Linux)
+pnpm smoke                                  # install the helper into a temporary home and talk to it
+pnpm release:check                          # everything a release needs (see RELEASING.md)
 ```
 
 The e2e test uses Playwright's Chromium (`pnpm --filter @paceline/extension exec playwright install chromium`). To use another Chromium or Chrome for Testing binary instead, set `PACELINE_E2E_CHROME=/path/to/binary`. Branded Google Chrome does not load unpacked extensions from the command line.
 
-Before a release, go through [docs/release-checklist.md](docs/release-checklist.md).
+To publish a release, follow [RELEASING.md](RELEASING.md). The manual tests are in [docs/release-checklist.md](docs/release-checklist.md).
 
 The development extension ID is pinned by `packages/extension/dev-key.txt`, so every source build connects to the helper without extra setup. Store builds use `pnpm --filter @paceline/extension zip`, which leaves the key out and writes to `packages/extension/.output-store/`, so it never changes the unpacked build in `.output/` that your browser loads.

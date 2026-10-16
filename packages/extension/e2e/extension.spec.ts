@@ -2,11 +2,12 @@ import { chmodSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from '
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import AxeBuilder from '@axe-core/playwright';
 import { chromium, expect, test, type BrowserContext, type Worker } from '@playwright/test';
 import { makeDashboard, makeDashboardSession, makeHiddenCosts, makeSnapshot, makeSummary, makeTip } from '@paceline/shared/fixtures';
 
 const here = fileURLToPath(new URL('.', import.meta.url));
-const EXT_DIR = join(here, '..', '.output', 'chrome-mv3');
+const EXT_DIR = join(here, '..', '.output-test', 'chrome-mv3');
 const FAKE_HOST = join(here, 'fake-host.mjs');
 // Read directly: Node's ESM loader (used by Playwright) needs import attributes for JSON modules.
 const DEV_EXTENSION_ID = (JSON.parse(readFileSync(join(here, '..', '..', 'shared', 'src', 'extension-ids.json'), 'utf8')) as { dev: string }).dev;
@@ -127,3 +128,40 @@ test('popup opens the dashboard in a tab', async () => {
   await tab.waitForLoadState();
   expect(tab.url()).toBe(`chrome-extension://${DEV_EXTENSION_ID}/dashboard.html`);
 });
+
+test('budget input saves only when you leave the field', async () => {
+  const sw = await worker();
+  const stored = () =>
+    sw.evaluate(async () => ((await (globalThis as any).chrome.storage.local.get('settings')).settings?.dailyBudgetPct ?? null) as number | null);
+  const page = await context.newPage();
+  await page.goto(`chrome-extension://${DEV_EXTENSION_ID}/options.html`);
+  const input = page.getByRole('spinbutton', { name: /Daily budget/ });
+  await input.fill('');
+  await input.pressSequentially('2');
+  expect(await stored()).not.toBe(2);
+  await input.pressSequentially('0');
+  await input.blur();
+  await expect.poll(stored).toBe(20);
+  await input.fill('');
+  await input.blur();
+  await expect(input).toHaveValue('20');
+  expect(await stored()).toBe(20);
+});
+
+for (const scheme of ['light', 'dark'] as const)
+for (const [path, ready] of [
+  ['popup.html', 'my-app'],
+  ['options.html', 'Paceline options'],
+  ['dashboard.html', 'This month'],
+] as const) {
+  test(`no serious accessibility problems on ${path} (${scheme})`, async () => {
+    const page = await context.newPage();
+    await page.emulateMedia({ colorScheme: scheme });
+    await page.goto(`chrome-extension://${DEV_EXTENSION_ID}/${path}`);
+    await expect(page.getByText(ready).first()).toBeVisible();
+    const serious = (await new AxeBuilder({ page }).analyze()).violations
+      .filter((v) => v.impact === 'serious' || v.impact === 'critical')
+      .map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`);
+    expect(serious).toEqual([]);
+  });
+}

@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { dashboardDataSchema, type DashboardData, type DashboardRange } from '@paceline/shared';
 import { formatTokens, formatUsd } from '../../src/core/format';
 import type { DailyUsage } from '../../src/core/habits';
 import { mergeSettings, type Settings } from '../../src/core/settings';
 import { categoryBars, modelBars, planComparison, stackByProject } from '../../src/dashboard/model';
+import { retryDelayMs, shouldShowLoadError } from '../../src/dashboard/retry';
 import { chromeSend, chromeStore } from '../../src/platform/chrome';
 import { callHost, type NativeResult } from '../../src/platform/native';
 import { BarList } from './charts/BarList';
@@ -29,6 +30,7 @@ export interface DashboardView {
 export function Dashboard({ actions }: { actions?: (view: DashboardView) => ReactNode }) {
   const [range, setRange] = useState<DashboardRange>('7d');
   const [data, setData] = useState<DashboardData | null>(null);
+  const hasData = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [settings, setSettings] = useState<Settings | null>(null);
   const [daily, setDaily] = useState<DailyUsage>({});
@@ -43,13 +45,19 @@ export function Dashboard({ actions }: { actions?: (view: DashboardView) => Reac
   useEffect(() => {
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
+    let failures = 0;
     const load = async () => {
       const res = await callHost(chromeSend, { type: 'dashboard', range }, dashboardDataSchema);
       if (cancelled) return;
       if (!res.ok) {
-        setError(problem(res));
+        // Keep the numbers already on screen and try again, waiting longer each time.
+        failures++;
+        if (shouldShowLoadError(hasData.current, failures)) setError(problem(res));
+        timer = setTimeout(() => void load(), retryDelayMs(failures));
         return;
       }
+      failures = 0;
+      hasData.current = true;
       setError(null);
       setData(res.data);
       // While the helper is still indexing, ask again until the numbers are complete.

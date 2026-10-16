@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addDailyUsage, cycleHigh, habitSummary, pruneDaily, streakDays } from '../src/core/habits';
+import { addDailyUsage, cycleHigh, formatBudgetPct, habitSummary, pruneDaily, streakDays } from '../src/core/habits';
 import type { Reading } from '../src/core/readings';
 
 // Local times, so the test passes in any time zone.
@@ -28,6 +28,16 @@ describe('daily usage', () => {
 
   it('keeps 120 days', () => {
     expect(Object.keys(pruneDaily({ '2026-06-01': 5, '2026-06-20': 4, '2026-10-13': 3 }, at(13)))).toEqual(['2026-06-20', '2026-10-13']);
+  });
+});
+
+describe('formatBudgetPct', () => {
+  it('shows one decimal only when rounding would hide which side of the budget it is on', () => {
+    expect(formatBudgetPct(14.4, 14)).toBe('14.4%');
+    expect(formatBudgetPct(13.6, 14)).toBe('13.6%');
+    expect(formatBudgetPct(14, 14)).toBe('14%');
+    expect(formatBudgetPct(9.4, 14)).toBe('9%');
+    expect(formatBudgetPct(16.2, 14)).toBe('16%');
   });
 });
 

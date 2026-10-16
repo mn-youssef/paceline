@@ -63,7 +63,21 @@ export function buildDashboard(
   const project = (name: string): DashboardProject => {
     let p = projects.get(name);
     if (!p) {
-      p = { name, sessions: 0, costUsd: 0, tokens: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 } };
+      p = {
+        name,
+        sessions: 0,
+        costUsd: 0,
+        tokens: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+        details: {
+          byModel: {},
+          tools: Object.fromEntries(TOOL_CATEGORIES.map((c) => [c, 0])) as Record<ToolCategory, number>,
+          mcp: {},
+          skills: {},
+          cacheMisses: 0,
+          cacheMissTokens: 0,
+          subagentCostUsd: 0,
+        },
+      };
       projects.set(name, p);
     }
     return p;
@@ -91,14 +105,27 @@ export function buildDashboard(
       p.tokens.output += h.outputTokens;
       p.tokens.cacheRead += h.cacheReadTokens;
       p.tokens.cacheWrite += h.cacheWriteTokens;
+      p.details!.cacheMisses += h.cacheMisses;
+      p.details!.cacheMissTokens += h.cacheMissTokens;
+      p.details!.subagentCostUsd += h.subagentCostUsd;
     }
     if (inRange === 0) continue;
-    project(name).sessions++;
+    const p = project(name);
+    const details = p.details!;
+    p.sessions++;
     for (const day of activeDays) days.get(day)!.sessions++;
     // Session-level counters are spread by the share of the session's cost that falls in the range.
     const share = a.costUsd > 0 ? inRange / a.costUsd : 0;
-    for (const [model, c] of Object.entries(a.costByModel)) byModel[model] = (byModel[model] ?? 0) + c * share;
-    for (const c of TOOL_CATEGORIES) byCategory[c] += a.tools[c].outputTokens * share;
+    for (const [model, c] of Object.entries(a.costByModel)) {
+      byModel[model] = (byModel[model] ?? 0) + c * share;
+      details.byModel[model] = (details.byModel[model] ?? 0) + c * share;
+    }
+    for (const c of TOOL_CATEGORIES) {
+      byCategory[c] += a.tools[c].outputTokens * share;
+      details.tools[c] += a.tools[c].outputTokens * share;
+    }
+    for (const [server, st] of Object.entries(a.mcp)) details.mcp[server] = (details.mcp[server] ?? 0) + st.outputTokens * share;
+    for (const [skill, st] of Object.entries(a.skills)) details.skills[skill] = (details.skills[skill] ?? 0) + st.outputTokens * share;
     const { tips, score, grade } = assessSession(a, overheadFor(a.projectPath));
     rows.push({
       sessionId: a.sessionId,

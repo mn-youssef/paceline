@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium, type BrowserContext } from '@playwright/test';
-import type { DashboardSession, SessionSummary, Tip } from '@paceline/shared';
+import type { DashboardProject, DashboardSession, SessionSummary, Tip } from '@paceline/shared';
 import { emptyTools, makeDashboard, makeHiddenCosts, makeSnapshot, makeSummary } from '@paceline/shared/fixtures';
 
 const here = fileURLToPath(new URL('.', import.meta.url));
@@ -158,14 +158,25 @@ const sessions: DashboardSession[] = [
   row({ projectName: 'docs-site', daysBack: 1, durationMin: 25, turns: 18, costUsd: 1.12, score: 96, grade: 'A' }),
 ];
 
-// Per project: the range's cost from the daily data, tokens roughly in proportion (cache reads dominate).
-const projectRows = projects.map((name, k) => {
+// Per project: the range's cost from the daily data, tokens and details roughly in proportion (cache reads dominate).
+const projectRows = projects.map((name, k): DashboardProject => {
   const costUsd = days.reduce((s, d) => s + (d.byProject[name] ?? 0), 0);
+  const per = (n: number) => Math.round(costUsd * n);
+  const misses = Math.round(costUsd / 12);
   return {
     name,
     sessions: Math.max(1, Math.round(28 * weights[k]!)),
     costUsd,
-    tokens: { input: Math.round(costUsd * 3_000), output: Math.round(costUsd * 25_000), cacheRead: Math.round(costUsd * 900_000), cacheWrite: Math.round(costUsd * 60_000) },
+    tokens: { input: per(3_000), output: per(25_000), cacheRead: per(900_000), cacheWrite: per(60_000) },
+    details: {
+      byModel: { 'claude-opus-5-5': costUsd * 0.65, 'claude-sonnet-5-5': costUsd * 0.32, 'claude-haiku-5-5': costUsd * 0.03 },
+      tools: { read: per(4_600), edit: per(1_500), bash: per(2_000), search: per(800), web: per(150), mcp: per(700), agent: per(450), other: per(50) },
+      mcp: k % 2 === 0 ? { figma: per(500), 'chrome-devtools': per(200) } : { github: per(700) },
+      skills: { 'frontend-design': per(300), 'superpowers:brainstorming': per(180), 'superpowers:test-driven-development': per(120) },
+      cacheMisses: misses,
+      cacheMissTokens: misses * 52_000,
+      subagentCostUsd: costUsd * 0.18,
+    },
   };
 });
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { applyEvent, newAccState } from '../src/parse/accumulator';
-import { MIN, SEC, T0, call, compact, results, run, turn } from './fixtures/events';
+import { MIN, SEC, T0, call, compact, results, run, skillText, turn } from './fixtures/events';
 
 describe('accumulator', () => {
   it('counts usage once per message id and gathers tools from every content line', () => {
@@ -56,6 +56,29 @@ describe('accumulator', () => {
       { subagent: true },
     );
     expect(s.hourly[h0]).toMatchObject({ inputTokens: 10, outputTokens: 120 });
+  });
+
+  it('counts the tokens each skill loads', () => {
+    const s = run([
+      turn({ id: 'a1', at: 0, tools: [call('s1', 'Skill', null, 'frontend-design')] }),
+      results(SEC, [['s1', 12]]),
+      skillText(2 * SEC, 's1', 4000),
+      turn({ id: 'a2', at: 3 * SEC, tools: [call('s2', 'Skill', null, 'frontend-design')] }),
+      results(4 * SEC, [['s2', 12]]),
+      skillText(5 * SEC, 's2', 4000),
+    ]);
+    expect(s.skillStats).toEqual({ 'frontend-design': { calls: 2, outputTokens: 8000 } });
+  });
+
+  it('counts every text a skill call loads, like a re-invocation note followed by the skill', () => {
+    const s = run([
+      turn({ id: 'a1', at: 0, tools: [call('s1', 'Skill', null, 'superpowers:brainstorming')] }),
+      results(SEC, [['s1', 12]]),
+      skillText(2 * SEC, 's1', 37),
+      skillText(2 * SEC, 's1', 4_700),
+      skillText(3 * SEC, 'unknown', 999),
+    ]);
+    expect(s.skillStats).toEqual({ 'superpowers:brainstorming': { calls: 1, outputTokens: 4_737 } });
   });
 
   it('prices turns by model and buckets cost by hour', () => {

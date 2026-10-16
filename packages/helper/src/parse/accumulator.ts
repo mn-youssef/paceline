@@ -3,7 +3,7 @@ import type { AssistantEvent, LogEvent, ToolCall, UserEvent } from './line';
 import { ROUTINE_TOOLS, categorize, mcpServer } from './tools';
 
 // Bump whenever counting changes, so cached per-file states are rebuilt.
-export const ACC_VERSION = 4;
+export const ACC_VERSION = 5;
 const MIN = 60_000;
 export const ACTIVE_GAP_MS = 5 * MIN;
 export const LONG_SESSION_CONTEXT = 80_000;
@@ -88,6 +88,10 @@ export interface AccState {
   residencyUsd: Record<string, number>;
   toolStats: Record<ToolCategory, Counter>;
   mcpStats: Record<string, Counter>;
+  /** Tokens each skill loads into the context, by skill name (plugin skills are `plugin:skill`). */
+  skillStats: Record<string, Counter>;
+  /** Skill calls by tool call ID → skill name. Kept, because one call can write several texts (a re-invocation note, then the skill). */
+  skillCalls: Record<string, string>;
   pendingTools: Record<string, { name: string; filePath: string | null }>;
   fileReads: Record<string, number>;
   largestRead: { path: string; tokens: number } | null;
@@ -135,6 +139,8 @@ export function newAccState(sessionId: string, isSubagentFile: boolean): AccStat
     residencyUsd: {},
     toolStats: Object.fromEntries(TOOL_CATEGORIES.map((c) => [c, { calls: 0, outputTokens: 0 }])) as Record<ToolCategory, Counter>,
     mcpStats: {},
+    skillStats: {},
+    skillCalls: {},
     pendingTools: {},
     fileReads: {},
     largestRead: null,
@@ -313,11 +319,17 @@ function registerTools(s: AccState, tools: ToolCall[]): void {
     const cat = categorize(t.name);
     s.toolStats[cat].calls++;
     if (cat === 'mcp') (s.mcpStats[mcpServer(t.name)] ??= { calls: 0, outputTokens: 0 }).calls++;
+    if (t.skill) {
+      (s.skillStats[t.skill] ??= { calls: 0, outputTokens: 0 }).calls++;
+      s.skillCalls[t.id] = t.skill;
+    }
     s.pendingTools[t.id] = { name: t.name, filePath: t.filePath };
   }
 }
 
 function onUser(s: AccState, ev: UserEvent, main: boolean): void {
+  const skill = ev.skillText ? s.skillCalls[ev.skillText.toolUseId] : undefined;
+  if (ev.skillText && skill) s.skillStats[skill]!.outputTokens += ev.skillText.tokens;
   for (const r of ev.results) {
     const toolCall = s.pendingTools[r.toolUseId];
     if (!toolCall) continue;

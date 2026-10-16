@@ -27,6 +27,7 @@ export function makeAgg(over: Partial<SessionAggregate> = {}): SessionAggregate 
     has1h: false,
     tools: Object.fromEntries(TOOL_CATEGORIES.map((c) => [c, { calls: 0, outputTokens: 0 }])) as SessionAggregate['tools'],
     mcp: {},
+    skills: {},
     residencyUsd: {},
     fileReads: {},
     largestRead: null,

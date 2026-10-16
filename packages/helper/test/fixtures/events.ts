@@ -9,7 +9,7 @@ export const MIN = 60_000;
 
 const base = { cwd: '/Users/dev/my-app', entrypoint: 'cli' };
 
-export const call = (id: string, name: string, filePath: string | null = null): ToolCall => ({ id, name, filePath });
+export const call = (id: string, name: string, filePath: string | null = null, skill: string | null = null): ToolCall => ({ id, name, filePath, skill });
 
 export function turn(o: { id: string; at: number; model?: string; usage?: Partial<Usage>; tools?: ToolCall[]; sidechain?: boolean }): LogEvent {
   return {
@@ -25,7 +25,11 @@ export function turn(o: { id: string; at: number; model?: string; usage?: Partia
 }
 
 export function results(at: number, pairs: [toolUseId: string, tokens: number][], sidechain = false): LogEvent {
-  return { ...base, kind: 'user', ts: T0 + at, sidechain, results: pairs.map(([toolUseId, tokens]) => ({ toolUseId, tokens })), command: null };
+  return { ...base, kind: 'user', ts: T0 + at, sidechain, results: pairs.map(([toolUseId, tokens]) => ({ toolUseId, tokens })), command: null, skillText: null };
+}
+
+export function skillText(at: number, toolUseId: string, tokens: number): LogEvent {
+  return { ...base, kind: 'user', ts: T0 + at, sidechain: false, results: [], command: null, skillText: { toolUseId, tokens } };
 }
 
 export function compact(at: number): LogEvent {

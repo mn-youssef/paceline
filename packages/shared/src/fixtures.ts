@@ -121,6 +121,15 @@ export function makeDashboardProject(over: Partial<DashboardProject> = {}): Dash
     sessions: 1,
     costUsd: 3.2,
     tokens: { input: 1_000, output: 20_000, cacheRead: 2_000_000, cacheWrite: 300_000 },
+    details: {
+      byModel: { 'claude-opus-5-5': 2.8, 'claude-haiku-5-5': 0.4 },
+      tools: { read: 120_000, edit: 30_000, bash: 45_000, search: 8_000, web: 0, mcp: 40_000, agent: 12_000, other: 5_000 },
+      mcp: { figma: 40_000 },
+      skills: { 'frontend-design': 16_000, 'superpowers:brainstorming': 9_000 },
+      cacheMisses: 3,
+      cacheMissTokens: 450_000,
+      subagentCostUsd: 0.8,
+    },
     ...over,
   };
 }

@@ -55,6 +55,19 @@ export function toolResultLine(o: { at: number; results: { id: string; content: 
   });
 }
 
+/** The text of a loaded skill: Claude Code writes it as a meta user message linked to the Skill call. */
+export function skillTextLine(o: { at: number; toolUseId: string; text: string }): string {
+  return JSON.stringify({
+    type: 'user',
+    isSidechain: false,
+    isMeta: true,
+    sourceToolUseID: o.toolUseId,
+    ...META,
+    timestamp: iso(o.at),
+    message: { role: 'user', content: [{ type: 'text', text: o.text }] },
+  });
+}
+
 export function promptLine(o: { at: number; text: string }): string {
   return JSON.stringify({ type: 'user', isSidechain: false, ...META, timestamp: iso(o.at), message: { role: 'user', content: o.text } });
 }

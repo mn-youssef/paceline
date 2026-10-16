@@ -34,5 +34,10 @@ test('dashboard', async () => {
   await page.goto(`chrome-extension://${extensionId}/dashboard.html`);
   await page.getByRole('tab', { name: 'Last 30 days' }).click();
   await page.locator('.value-card .value').waitFor();
+  // Show one project's details, without the hover outline or a half-turned chevron.
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.locator('.project-toggle').first().click();
+  await page.locator('.project-details').first().waitFor();
+  await page.mouse.move(0, 0);
   await page.screenshot({ path: join(OUT_DIR, 'dashboard.png'), fullPage: true });
 });

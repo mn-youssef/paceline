@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { estimateTokens, parseLine } from '../src/parse/line';
-import { T0, assistantLine, compactLine, promptLine, toolResultLine } from './fixtures/lines';
+import { T0, assistantLine, compactLine, promptLine, skillTextLine, toolResultLine } from './fixtures/lines';
 
 describe('parseLine', () => {
   it('reads usage, model and tool calls from an assistant line', () => {
@@ -31,8 +31,8 @@ describe('parseLine', () => {
       model: 'claude-opus-5-5',
       usage: { input: 2, output: 336, cacheRead: 40_862, cacheWrite5m: 0, cacheWrite1h: 37_367 },
       tools: [
-        { id: 't1', name: 'Read', filePath: '/repo/a.ts' },
-        { id: 't2', name: 'Bash', filePath: null },
+        { id: 't1', name: 'Read', filePath: '/repo/a.ts', skill: null },
+        { id: 't2', name: 'Bash', filePath: null, skill: null },
       ],
     });
   });
@@ -65,6 +65,16 @@ describe('parseLine', () => {
       ],
       command: null,
     });
+  });
+
+  it('reads the skill name from a Skill call', () => {
+    const ev = parseLine(assistantLine({ id: 'm1', at: 0, tools: [{ id: 's1', name: 'Skill', input: { skill: 'frontend-design' } }, { id: 't1', name: 'Bash', input: { command: 'ls' } }] }));
+    expect(ev).toMatchObject({ kind: 'assistant', tools: [{ id: 's1', skill: 'frontend-design' }, { id: 't1', skill: null }] });
+  });
+
+  it('measures the text of a loaded skill and links it to its call', () => {
+    expect(parseLine(skillTextLine({ at: 0, toolUseId: 's1', text: 'x'.repeat(4000) }))).toMatchObject({ kind: 'user', skillText: { toolUseId: 's1', tokens: 1000 } });
+    expect(parseLine(promptLine({ at: 0, text: 'hello' }))).toMatchObject({ kind: 'user', skillText: null });
   });
 
   it('detects slash commands', () => {

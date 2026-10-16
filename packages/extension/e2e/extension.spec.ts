@@ -176,3 +176,26 @@ test('dashboard lists projects with their tokens', async () => {
   await expect(projects.locator('.token-total')).toHaveText('2.3M');
   await expect(projects.getByRole('img', { name: 'my-app: input 1k, output 20k, cache write 300k, cache read 2M, total 2.3M' })).toBeVisible();
 });
+
+test('clicking a project opens its details', async () => {
+  const page = await context.newPage();
+  await page.goto(`chrome-extension://${DEV_EXTENSION_ID}/dashboard.html`);
+  const row = page.locator('.projects-card').getByRole('button', { name: /my-app/ });
+  const details = page.locator('.project-details');
+  await expect(row).toHaveAttribute('aria-expanded', 'false');
+  await expect(details).toBeHidden();
+  await row.click();
+  await expect(row).toHaveAttribute('aria-expanded', 'true');
+  await expect(details.getByText('figma')).toBeVisible();
+  await expect(details.getByText('superpowers:brainstorming')).toBeVisible();
+  await expect(details.getByText('Expired 3× · 450k tokens written again')).toBeVisible();
+  for (const scheme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme: scheme });
+    const serious = (await new AxeBuilder({ page }).include('.projects-card').analyze()).violations
+      .filter((v) => v.impact === 'serious' || v.impact === 'critical')
+      .map((v) => `${scheme} ${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`);
+    expect(serious).toEqual([]);
+  }
+  await row.press('Enter');
+  await expect(details).toBeHidden();
+});

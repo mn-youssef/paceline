@@ -2,12 +2,15 @@
   "name": "paceline-monorepo",
   "private": true,
   "packageManager": "pnpm@10.33.0",
-  "engines": { "node": ">=22.12" },
+  "engines": {
+    "node": ">=22.12"
+  },
   "scripts": {
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",
     "build": "pnpm -r build",
     "gen:dev-key": "node scripts/gen-dev-key.mjs",
-    "gen:icons": "node scripts/gen-icons.mjs"
+    "gen:icons": "node scripts/gen-icons.mjs",
+    "smoke": "node scripts/smoke-install.mjs packages/helper/dist/paceline.cjs"
   }
 }

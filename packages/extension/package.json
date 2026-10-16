@@ -7,7 +7,7 @@
     "dev": "wxt",
     "build": "wxt build",
     "zip": "PACELINE_STORE=1 wxt zip",
-    "test": "vitest run",
+    "test": "wxt prepare && vitest run",
     "typecheck": "wxt prepare && tsc --noEmit -p .",
     "e2e": "wxt build && playwright test",
     "screenshots": "wxt build && playwright test --config playwright.screenshots.config.ts"

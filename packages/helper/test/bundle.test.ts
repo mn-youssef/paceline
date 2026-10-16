@@ -1,5 +1,6 @@
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { beforeAll, describe, expect, it } from 'vitest';
@@ -10,8 +11,20 @@ const PKG = fileURLToPath(new URL('..', import.meta.url));
 const BIN = join(PKG, 'dist', 'paceline.cjs');
 const VERSION = JSON.parse(readFileSync(join(PKG, 'package.json'), 'utf8')).version as string;
 
-const run = (home: string, args: string[], input?: string | Buffer) =>
-  spawnSync(process.execPath, [BIN, ...args], { env: { ...process.env, HOME: home, USERPROFILE: home }, input });
+// Every path the helper writes stays inside the temporary home, on Windows too (LOCALAPPDATA holds its manifest).
+const homeEnv = (home: string) => ({ ...process.env, HOME: home, USERPROFILE: home, LOCALAPPDATA: join(home, 'AppData', 'Local') });
+const chromeProfile = (home: string) =>
+  process.platform === 'darwin'
+    ? join(home, 'Library', 'Application Support', 'Google', 'Chrome')
+    : process.platform === 'win32'
+      ? join(home, 'AppData', 'Local', 'Google', 'Chrome', 'User Data')
+      : join(home, '.config', 'google-chrome');
+const hostManifest = (home: string) =>
+  process.platform === 'win32' ? join(home, 'AppData', 'Local', 'paceline', 'com.paceline.host.json') : join(chromeProfile(home), 'NativeMessagingHosts', 'com.paceline.host.json');
+// Installing on Windows writes the registry (HKCU), so those tests only run on CI machines there.
+const realRegistry = process.platform === 'win32' && process.env.CI !== 'true';
+
+const run = (home: string, args: string[], input?: string | Buffer) => spawnSync(process.execPath, [BIN, ...args], { env: homeEnv(home), input });
 
 beforeAll(() => {
   execFileSync(process.execPath, ['build.mjs'], { cwd: PKG, stdio: 'ignore' });
@@ -27,10 +40,9 @@ describe('bundled CLI', () => {
     expect(decodeMessage(r.stdout)?.message).toMatchObject({ v: 1, id: 'p', ok: true, data: { helperVersion: VERSION } });
   });
 
-  it('installs, records a status line update, and uninstalls', () => {
+  it.skipIf(realRegistry)('installs, records a status line update, and uninstalls', () => {
     const home = tempHome();
-    mkdirSync(join(home, 'Library', 'Application Support', 'Google', 'Chrome'), { recursive: true });
-    mkdirSync(join(home, '.config', 'google-chrome'), { recursive: true });
+    mkdirSync(chromeProfile(home), { recursive: true });
     expect(run(home, ['install']).status).toBe(0);
     const settings = JSON.parse(readFileSync(join(home, '.claude', 'settings.json'), 'utf8'));
     expect(settings.statusLine.command).toContain(join(home, '.paceline', 'paceline.cjs'));
@@ -52,26 +64,47 @@ describe('bundled CLI', () => {
 
 describe('release build', () => {
   const STORE = 'abcdefghijklmnopabcdefghijklmnop';
-  const RELEASE_BIN = join(PKG, 'release', 'paceline.cjs');
-  const buildRelease = (env: NodeJS.ProcessEnv) => spawnSync(process.execPath, ['build.mjs', '--release'], { cwd: PKG, env, encoding: 'utf8' });
+  // Each test gets its own IDs file and output, so the repo's extension-ids.json and release/ never matter.
+  const buildRelease = (store: string | null, env: NodeJS.ProcessEnv = {}) => {
+    const dir = mkdtempSync(join(tmpdir(), 'paceline-release-'));
+    const ids = join(dir, 'extension-ids.json');
+    writeFileSync(ids, JSON.stringify({ dev: 'cchmkmfoocjlfkogepngoklnehiofpco', store }));
+    const outfile = join(dir, 'paceline.cjs');
+    const base = { ...process.env };
+    delete base.PACELINE_STORE_ID;
+    const r = spawnSync(process.execPath, ['build.mjs', '--release', '--ids', ids, '--outfile', outfile], { cwd: PKG, env: { ...base, ...env }, encoding: 'utf8' });
+    return { ...r, outfile };
+  };
 
-  it('release build trusts only the store ID and leaves the development build untouched', () => {
-    const devBuilt = statSync(BIN).mtimeMs;
-    expect(buildRelease({ ...process.env, PACELINE_STORE_ID: STORE }).status).toBe(0);
-    const home = tempHome();
-    const profile = process.platform === 'darwin' ? join(home, 'Library', 'Application Support', 'Google', 'Chrome') : join(home, '.config', 'google-chrome');
-    mkdirSync(profile, { recursive: true });
-    expect(spawnSync(process.execPath, [RELEASE_BIN, 'install'], { env: { ...process.env, HOME: home, USERPROFILE: home } }).status).toBe(0);
-    const manifest = JSON.parse(readFileSync(join(profile, 'NativeMessagingHosts', 'com.paceline.host.json'), 'utf8'));
-    expect(manifest.allowed_origins).toEqual([`chrome-extension://${STORE}/`]);
-    expect(statSync(BIN).mtimeMs).toBe(devBuilt);
-  }, 60_000);
+  it.skipIf(realRegistry)(
+    'release build trusts only the store ID and leaves the development build untouched',
+    () => {
+      const devBuilt = statSync(BIN).mtimeMs;
+      const releaseFolder = join(PKG, 'release', 'paceline.cjs');
+      const releaseBefore = existsSync(releaseFolder) ? statSync(releaseFolder).mtimeMs : null;
+      const r = buildRelease(STORE);
+      expect(r.status).toBe(0);
+      const home = tempHome();
+      mkdirSync(chromeProfile(home), { recursive: true });
+      expect(spawnSync(process.execPath, [r.outfile, 'install'], { env: homeEnv(home) }).status).toBe(0);
+      const manifest = JSON.parse(readFileSync(hostManifest(home), 'utf8'));
+      expect(manifest.allowed_origins).toEqual([`chrome-extension://${STORE}/`]);
+      expect(spawnSync(process.execPath, [r.outfile, 'uninstall', '--purge'], { env: homeEnv(home) }).status).toBe(0);
+      expect(statSync(BIN).mtimeMs).toBe(devBuilt);
+      expect(existsSync(releaseFolder) ? statSync(releaseFolder).mtimeMs : null).toBe(releaseBefore);
+    },
+    60_000,
+  );
 
   it('release build refuses to run without a store ID', () => {
-    const env = { ...process.env };
-    delete env.PACELINE_STORE_ID;
-    const r = buildRelease(env);
+    const r = buildRelease(null);
     expect(r.status).not.toBe(0);
     expect(r.stderr).toContain('Release build needs the store extension ID');
+  }, 60_000);
+
+  it('release build refuses a rehearsal ID that differs from the committed one', () => {
+    const r = buildRelease(STORE, { PACELINE_STORE_ID: 'ponmlkjihgfedcbaponmlkjihgfedcba' });
+    expect(r.status).not.toBe(0);
+    expect(r.stderr).toContain('differs from the committed store ID');
   }, 60_000);
 });

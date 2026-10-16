@@ -85,6 +85,12 @@ const expected = ['LICENSE', 'README.md', 'package.json', 'release/paceline.cjs'
 if (JSON.stringify(files) !== JSON.stringify(expected)) fail(`npm would publish ${files.join(', ')}; expected ${expected.join(', ')}.`);
 ok(`npm package: ${files.join(', ')}`);
 
+if (process.env.PACELINE_STORE_ID) {
+  // A rehearsal ID must never reach npm: the build refuses it at publish time, and this says so up front.
+  console.log('\nRehearsal passed — nothing to publish. Unset PACELINE_STORE_ID and use the real store ID to release.');
+  process.exit(0);
+}
+
 console.log(`
 Ready to release ${version}. Next steps (details in RELEASING.md):
   1. Upload ${zipPath} in the Chrome Web Store Developer Dashboard.

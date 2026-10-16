@@ -15,12 +15,12 @@ function weeks(): DashboardData {
   for (let i = 0; i < 14; i++) {
     const t = new Date(2026, 8, 28 + i, 12).getTime(); // 28 Sep … 11 Oct
     const lastWeek = i >= 7;
-    days.push({ day: localDayKey(t), costUsd: lastWeek ? 60 : 50, sessions: 1, byProject: lastWeek ? { regx: 40, web: 20 } : { web: 50 } });
+    days.push({ day: localDayKey(t), costUsd: lastWeek ? 60 : 50, sessions: 1, byProject: lastWeek ? { shop: 40, web: 20 } : { web: 50 } });
   }
   const tip = { ruleId: 'long-context', title: 'Running at very long context' };
   const session = (id: string, startedAt: number, tips = [tip]) => ({
     sessionId: id,
-    projectName: 'regx',
+    projectName: 'shop',
     startedAt,
     endedAt: startedAt,
     durationMin: 60,
@@ -56,7 +56,7 @@ describe('buildDigest', () => {
     expect(buildDigest(weeks(), { [key(9, 14)]: 5 }, 14, WED)).toEqual({
       title: 'Your week with Claude Code',
       message:
-        '$420 of API value across 2 sessions (+20% vs the week before). Top project: regx. Most common tip: Running at very long context. 🔥 1-day streak.',
+        '$420 of API value across 2 sessions (+20% vs the week before). Top project: shop. Most common tip: Running at very long context. 🔥 1-day streak.',
     });
   });
 

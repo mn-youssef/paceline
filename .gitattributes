@@ -1,0 +1,2 @@
+# Same line endings on every OS, so files and test fixtures read identically on Windows CI.
+* text=auto eol=lf

@@ -48,7 +48,8 @@ describe('install', () => {
     expect(readFileSync(paths.cjs, 'utf8')).toBe('// bundle');
     const launcher = join(paths.bin, 'paceline-host');
     expect(readFileSync(launcher, 'utf8')).toBe(posixLauncher('/usr/local/bin/node', paths.cjs));
-    expect(statSync(launcher).mode & 0o111).not.toBe(0);
+    // Windows has no execute bit; there the launcher is a .bat file.
+    if (process.platform !== 'win32') expect(statSync(launcher).mode & 0o111).not.toBe(0);
     expect(report.browsers).toEqual(['Chrome', 'Brave']);
     expect(json(join(home, ...CHROME, 'NativeMessagingHosts', `${HOST_NAME}.json`))).toEqual({
       name: HOST_NAME,

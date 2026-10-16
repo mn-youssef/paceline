@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { browser } from 'wxt/browser';
+import { PRIVACY_URL } from '../../../src/core/links';
 
 const COMMAND = 'npx paceline install';
 
-export function Onboarding() {
+export function Onboarding({ onRetry }: { onRetry: () => void }) {
   const [copied, setCopied] = useState(false);
   const copy = async () => {
     await navigator.clipboard.writeText(COMMAND);
@@ -21,10 +22,18 @@ export function Onboarding() {
       </div>
       <p className="muted">
         <span className="pulse" aria-hidden="true" />
-        Waiting for the helper…
+        Waiting for the helper…{' '}
+        <button type="button" className="link" onClick={onRetry}>
+          Check again
+        </button>
       </p>
       <p className="muted">
         Needs Node.js 18 or newer. Stuck? Run <code>npx paceline doctor</code>.
+      </p>
+      <p className="muted">
+        <a href={PRIVACY_URL} target="_blank" rel="noreferrer">
+          What does the helper read?
+        </a>
       </p>
       <p className="muted">
         Only want the limit %?{' '}

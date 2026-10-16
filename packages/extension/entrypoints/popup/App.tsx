@@ -50,7 +50,7 @@ export function App() {
 
   if (!outcome) return <p className="loading">Loading…</p>;
   const hint = limitsHint(outcome.conn, outcome.limits);
-  if (outcome.conn === 'unreachable' && outcome.limits.source !== 'claude-ai') return <Onboarding />;
+  if (outcome.conn === 'unreachable' && outcome.limits.source !== 'claude-ai') return <Onboarding onRetry={() => void load(selected)} />;
 
   return (
     <main>

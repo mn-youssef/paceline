@@ -72,7 +72,7 @@ corepack enable
 **2. Get the code:**
 
 ```bash
-git clone <repository-url> paceline
+git clone https://github.com/mn-youssef/paceline.git
 ```
 
 ```bash
@@ -273,4 +273,6 @@ pnpm --filter @paceline/extension e2e       # Playwright smoke test (macOS/Linux
 
 The e2e test uses Playwright's Chromium (`pnpm --filter @paceline/extension exec playwright install chromium`). To use another Chromium or Chrome for Testing binary instead, set `PACELINE_E2E_CHROME=/path/to/binary`. Branded Google Chrome does not load unpacked extensions from the command line.
 
-The development extension ID is pinned by `packages/extension/dev-key.txt`, so every source build connects to the helper without extra setup. Store builds use `pnpm --filter @paceline/extension zip`, which leaves the key out.
+Before a release, go through [docs/release-checklist.md](docs/release-checklist.md).
+
+The development extension ID is pinned by `packages/extension/dev-key.txt`, so every source build connects to the helper without extra setup. Store builds use `pnpm --filter @paceline/extension zip`, which leaves the key out and writes to `packages/extension/.output-store/`, so it never changes the unpacked build in `.output/` that your browser loads.

@@ -1,5 +1,5 @@
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdirSync, readFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { beforeAll, describe, expect, it } from 'vitest';
@@ -48,4 +48,30 @@ describe('bundled CLI', () => {
     expect(run(home, ['uninstall']).status).toBe(0);
     expect(JSON.parse(readFileSync(join(home, '.claude', 'settings.json'), 'utf8')).statusLine).toBeUndefined();
   });
+});
+
+describe('release build', () => {
+  const STORE = 'abcdefghijklmnopabcdefghijklmnop';
+  const RELEASE_BIN = join(PKG, 'release', 'paceline.cjs');
+  const buildRelease = (env: NodeJS.ProcessEnv) => spawnSync(process.execPath, ['build.mjs', '--release'], { cwd: PKG, env, encoding: 'utf8' });
+
+  it('release build trusts only the store ID and leaves the development build untouched', () => {
+    const devBuilt = statSync(BIN).mtimeMs;
+    expect(buildRelease({ ...process.env, PACELINE_STORE_ID: STORE }).status).toBe(0);
+    const home = tempHome();
+    const profile = process.platform === 'darwin' ? join(home, 'Library', 'Application Support', 'Google', 'Chrome') : join(home, '.config', 'google-chrome');
+    mkdirSync(profile, { recursive: true });
+    expect(spawnSync(process.execPath, [RELEASE_BIN, 'install'], { env: { ...process.env, HOME: home, USERPROFILE: home } }).status).toBe(0);
+    const manifest = JSON.parse(readFileSync(join(profile, 'NativeMessagingHosts', 'com.paceline.host.json'), 'utf8'));
+    expect(manifest.allowed_origins).toEqual([`chrome-extension://${STORE}/`]);
+    expect(statSync(BIN).mtimeMs).toBe(devBuilt);
+  }, 60_000);
+
+  it('release build refuses to run without a store ID', () => {
+    const env = { ...process.env };
+    delete env.PACELINE_STORE_ID;
+    const r = buildRelease(env);
+    expect(r.status).not.toBe(0);
+    expect(r.stderr).toContain('Release build needs the store extension ID');
+  }, 60_000);
 });

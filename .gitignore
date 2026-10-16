@@ -10,3 +10,4 @@ playwright-report/
 .docs
 .superpowers
 docs/superpowers
+packages/helper/release/

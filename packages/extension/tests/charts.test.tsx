@@ -75,3 +75,12 @@ describe('chart sizing', () => {
     }
   });
 });
+
+describe('StackedBars with a project named Other', () => {
+  it('keeps the real project and the fold-in as separate legend entries', () => {
+    const stacked = stackByProject([{ day: '2026-10-12', costUsd: 30, sessions: 1, byProject: { Other: 9, a: 6, b: 5, c: 4, d: 3, e: 2, f: 1 } }]);
+    const html = renderToString(<StackedBars stacked={stacked} label="x" />);
+    expect(html.match(/<span class="legend-name">Other<\/span>/g)).toHaveLength(2);
+    expect(html.match(/swatch s-other/g)).toHaveLength(1);
+  });
+});

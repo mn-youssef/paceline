@@ -3,6 +3,7 @@ import { TOOL_CATEGORIES, type DashboardSession, type ToolCategory } from '@pace
 import { makeDashboardSession } from '@paceline/shared/fixtures';
 import {
   averageGrade,
+  OTHER_KEY,
   categoryBars,
   habitCells,
   heatLevel,
@@ -22,14 +23,19 @@ describe('stackByProject', () => {
   it('folds projects beyond the top five into Other', () => {
     const s = stackByProject([day('2026-10-12', { a: 6, b: 5, c: 4, d: 3, e: 2, f: 1 }), day('2026-10-13', { g: 0.5, a: 1 })]);
     expect(s.series).toEqual([
-      { name: 'a', total: 7 },
-      { name: 'b', total: 5 },
-      { name: 'c', total: 4 },
-      { name: 'd', total: 3 },
-      { name: 'e', total: 2 },
-      { name: 'Other', total: 1.5 },
+      { key: 'a', name: 'a', total: 7 },
+      { key: 'b', name: 'b', total: 5 },
+      { key: 'c', name: 'c', total: 4 },
+      { key: 'd', name: 'd', total: 3 },
+      { key: 'e', name: 'e', total: 2 },
+      { key: OTHER_KEY, name: 'Other', total: 1.5 },
     ]);
     expect(s.days[1]).toEqual({ day: '2026-10-13', values: [1, 0, 0, 0, 0, 0.5] });
+  });
+
+  it('keeps a real project called "Other" apart from the fold-in', () => {
+    const s = stackByProject([day('2026-10-12', { Other: 9, a: 6, b: 5, c: 4, d: 3, e: 2, f: 1 })]);
+    expect(s.series.map((x) => x.key)).toEqual(['Other', 'a', 'b', 'c', 'd', OTHER_KEY]);
   });
 
   it('has no Other series with five projects or fewer', () => {

@@ -6,10 +6,12 @@ import { familyOf, type Family } from '../ui/view';
 
 export const TOP_PROJECTS = 5;
 export const OTHER = 'Other';
+/** Key of the fold-in series, so a real project called "Other" keeps its own entry. */
+export const OTHER_KEY = '__other__';
 
 export interface Stacked {
   /** The top projects by total, largest first, then "Other" when more exist. Colours follow this order. */
-  series: { name: string; total: number }[];
+  series: { key: string; name: string; total: number }[];
   /** One value per series for each day. */
   days: { day: string; values: number[] }[];
 }
@@ -20,8 +22,8 @@ export function stackByProject(days: DashboardData['days'], top = TOP_PROJECTS):
   const ranked = [...totals].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
   const named = ranked.slice(0, top);
   const rest = ranked.slice(top);
-  const series = named.map(([name, total]) => ({ name, total }));
-  if (rest.length > 0) series.push({ name: OTHER, total: rest.reduce((s, [, c]) => s + c, 0) });
+  const series = named.map(([name, total]) => ({ key: name, name, total }));
+  if (rest.length > 0) series.push({ key: OTHER_KEY, name: OTHER, total: rest.reduce((s, [, c]) => s + c, 0) });
   const slot = new Map(named.map(([name], i) => [name, i]));
   return {
     series,

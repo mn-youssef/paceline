@@ -1,5 +1,5 @@
 import { formatUsd } from '../../../src/core/format';
-import { OTHER, type Stacked } from '../../../src/dashboard/model';
+import { OTHER, OTHER_KEY, type Stacked } from '../../../src/dashboard/model';
 
 const W = 960;
 const H = 220;
@@ -16,7 +16,7 @@ export function roundedTop(x: number, y: number, w: number, h: number, r: number
   return `M${x},${y + h}V${y + k}Q${x},${y} ${x + k},${y}H${x + w - k}Q${x + w},${y} ${x + w},${y + k}V${y + h}Z`;
 }
 
-const seriesClass = (name: string, i: number) => (name === OTHER ? 's-other' : `s-${i}`);
+const seriesClass = (key: string, i: number) => (key === OTHER_KEY ? 's-other' : `s-${i}`);
 
 export function StackedBars({ stacked, label }: { stacked: Stacked; label: string }) {
   const max = Math.max(0, ...stacked.days.map((d) => d.values.reduce((s, v) => s + v, 0)));
@@ -47,7 +47,7 @@ export function StackedBars({ stacked, label }: { stacked: Stacked; label: strin
                 const h = (v / max) * plotH;
                 base -= h;
                 const name = stacked.series[s]?.name ?? OTHER;
-                const cls = `seg ${seriesClass(name, s)}`;
+                const cls = `seg ${seriesClass(stacked.series[s]?.key ?? OTHER_KEY, s)}`;
                 const tip = <title>{`${d.day} · ${name}: ${formatUsd(v)}`}</title>;
                 return k === segs.length - 1 ? (
                   <path key={s} className={cls} d={roundedTop(x, base, barW, h, RADIUS)}>
@@ -70,8 +70,8 @@ export function StackedBars({ stacked, label }: { stacked: Stacked; label: strin
       </svg>
       <ul className="legend">
         {stacked.series.map((s, i) => (
-          <li key={s.name}>
-            <span className={`swatch ${seriesClass(s.name, i)}`} />
+          <li key={s.key}>
+            <span className={`swatch ${seriesClass(s.key, i)}`} />
             <span className="legend-name">{s.name}</span>
             <span className="muted">{formatUsd(s.total)}</span>
           </li>

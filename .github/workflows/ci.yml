@@ -17,6 +17,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm gen:dev-key
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
@@ -31,5 +32,6 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm gen:dev-key
       - run: pnpm --filter @paceline/extension exec playwright install --with-deps chromium
       - run: pnpm --filter @paceline/extension e2e

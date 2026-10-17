@@ -4,10 +4,9 @@ import { createHash, generateKeyPairSync } from 'node:crypto';
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 
 const keyPath = 'packages/extension/dev-key.txt';
-const idsPath = 'packages/shared/src/extension-ids.json';
 
 if (existsSync(keyPath) && !process.argv.includes('--force')) {
-  console.error(`${keyPath} already exists. Pass --force to regenerate (this changes the dev extension id).`);
+  console.error(`${keyPath} already exists. Pass --force to regenerate.`);
   process.exit(1);
 }
 
@@ -17,7 +16,6 @@ const hex = createHash('sha256').update(der).digest('hex').slice(0, 32);
 const id = [...hex].map((c) => String.fromCharCode(97 + parseInt(c, 16))).join('');
 
 mkdirSync('packages/extension', { recursive: true });
-mkdirSync('packages/shared/src', { recursive: true });
 writeFileSync(keyPath, `${der.toString('base64')}\n`);
-writeFileSync(idsPath, `${JSON.stringify({ dev: id, store: null }, null, 2)}\n`);
-console.log(`dev extension id: ${id}`);
+console.log(`Generated a local development extension key. Extension ID: ${id}`);
+console.log('Keep packages/extension/dev-key.txt private to this checkout.');

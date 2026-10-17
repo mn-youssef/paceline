@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { chmodSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -9,8 +10,9 @@ import { makeDashboard, makeDashboardProject, makeDashboardSession, makeHiddenCo
 const here = fileURLToPath(new URL('.', import.meta.url));
 const EXT_DIR = join(here, '..', '.output-test', 'chrome-mv3');
 const FAKE_HOST = join(here, 'fake-host.mjs');
-// Read directly: Node's ESM loader (used by Playwright) needs import attributes for JSON modules.
-const DEV_EXTENSION_ID = (JSON.parse(readFileSync(join(here, '..', '..', 'shared', 'src', 'extension-ids.json'), 'utf8')) as { dev: string }).dev;
+const devKey = readFileSync(join(here, '..', 'dev-key.txt'), 'utf8').trim();
+const devHex = createHash('sha256').update(Buffer.from(devKey, 'base64')).digest('hex').slice(0, 32);
+const DEV_EXTENSION_ID = [...devHex].map((c) => String.fromCharCode(97 + parseInt(c, 16))).join('');
 const HOST_NAME = 'com.paceline.host'; // same value as HOST_NAME in @paceline/shared
 
 let context: BrowserContext;

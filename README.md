@@ -91,6 +91,7 @@ pnpm install
 **4. Build the extension and the helper:**
 
 ```bash
+pnpm gen:dev-key
 pnpm build
 ```
 
@@ -198,6 +199,7 @@ npx paceline install
    ```
 3. Rebuild:
    ```bash
+   pnpm gen:dev-key
    pnpm build
    ```
 4. Update the helper:
@@ -235,7 +237,7 @@ Your Claude Code logs are never changed.
 | Command | What it does |
 |---|---|
 | `npx paceline install` | Install or repair: register with browsers, add the status line, index logs |
-| `npx paceline install --extension-id <id>` | Also allow an extension with another ID, for example your own build with a different key |
+| `node packages/helper/dist/paceline.cjs install --extension-id <id>` | Source builds only: also allow an extension with another ID, for example your own build with a different key |
 | `npx paceline doctor` | Check the setup |
 | `npx paceline doctor --json` | The same checks as JSON |
 | `npx paceline uninstall` | Remove everything except settings backups |
@@ -280,4 +282,4 @@ The e2e test uses Playwright's Chromium (`pnpm --filter @paceline/extension exec
 
 To publish a release, follow [RELEASING.md](RELEASING.md). The manual tests are in [docs/release-checklist.md](docs/release-checklist.md).
 
-The development extension ID is pinned by `packages/extension/dev-key.txt`, so every source build connects to the helper without extra setup. Store builds use `pnpm --filter @paceline/extension zip`, which leaves the key out and writes to `packages/extension/.output-store/`, so it never changes the unpacked build in `.output/` that your browser loads.
+Source builds use a per-checkout development key in `packages/extension/dev-key.txt`. Generate it with `pnpm gen:dev-key`; it is ignored by Git and must not be shared. The helper derives the matching extension ID from that local key. Store builds use `pnpm --filter @paceline/extension zip`, which leaves the key out and writes to `packages/extension/.output-store/`, so it never changes the unpacked build in `.output/` that your browser loads.

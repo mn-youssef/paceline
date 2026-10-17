@@ -2,6 +2,18 @@
 
 Paceline has no servers and collects no data.
 
+## Credentials and browser sessions
+
+Paceline does not read Claude API keys, OAuth tokens, passwords, browser cookie databases,
+keychains, SSH keys, or environment-variable secrets. The local helper does not make network
+requests.
+
+The optional claude.ai fallback is different: if you enable it and grant the optional
+`https://claude.ai/*` permission, the browser attaches your existing claude.ai session
+credentials to two fixed requests for organization and usage data. Paceline never reads the
+cookie or token, sends no request to any other origin, and stores only the returned limit
+percentages and reset times.
+
 ## What the local helper reads (on your computer only)
 
 - Claude Code session logs in `~/.claude/projects/`, to compute token totals per session.

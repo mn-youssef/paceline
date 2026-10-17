@@ -68,7 +68,7 @@ describe('release build', () => {
   const buildRelease = (store: string | null, env: NodeJS.ProcessEnv = {}) => {
     const dir = mkdtempSync(join(tmpdir(), 'paceline-release-'));
     const ids = join(dir, 'extension-ids.json');
-    writeFileSync(ids, JSON.stringify({ dev: 'cchmkmfoocjlfkogepngoklnehiofpco', store }));
+    writeFileSync(ids, JSON.stringify({ store }));
     const outfile = join(dir, 'paceline.cjs');
     const base = { ...process.env };
     delete base.PACELINE_STORE_ID;

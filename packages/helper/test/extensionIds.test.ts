@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { allowedExtensionIds } from '../src/extensionIds';
 
-const DEV = 'cchmkmfoocjlfkogepngoklnehiofpco';
+const DEV = 'abcdefghijklmnopabcdefghijklmnop';
 const STORE = 'abcdefghijklmnopabcdefghijklmnop';
 
 describe('allowedExtensionIds', () => {
@@ -16,5 +16,9 @@ describe('allowedExtensionIds', () => {
 
   it('release build without a store ID is an error', () => {
     expect(() => allowedExtensionIds(true, DEV, null)).toThrow(/store extension ID/);
+  });
+
+  it('development build without a local ID is an error', () => {
+    expect(() => allowedExtensionIds(false, null, null)).toThrow(/local extension key/);
   });
 });

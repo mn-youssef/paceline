@@ -1,6 +1,5 @@
 import { realpathSync } from 'node:fs';
-import { DEV_EXTENSION_ID } from '@paceline/shared';
-import { BUILD_STORE_ID, RELEASE_BUILD } from './buildFlags';
+import { BUILD_DEV_ID, BUILD_STORE_ID, RELEASE_BUILD } from './buildFlags';
 import { doctor, formatChecks } from './doctor';
 import { allowedExtensionIds } from './extensionIds';
 import { hostMain } from './host';
@@ -57,7 +56,7 @@ async function main(argv: string[]): Promise<number> {
     env: process.env,
     selfPath: realpathSync(process.argv[1] ?? ''),
     nodePath: process.execPath,
-    extensionIds: [...allowedExtensionIds(RELEASE_BUILD, DEV_EXTENSION_ID, BUILD_STORE_ID), ...flagValues(rest, '--extension-id')],
+    extensionIds: [...allowedExtensionIds(RELEASE_BUILD, BUILD_DEV_ID, BUILD_STORE_ID), ...(RELEASE_BUILD ? [] : flagValues(rest, '--extension-id'))],
     registry: os === 'win32' ? windowsRegistry : noRegistry,
     now: Date.now,
   };

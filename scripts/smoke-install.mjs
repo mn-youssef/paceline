@@ -1,13 +1,16 @@
 // Install smoke test: installs the helper into a temporary home, talks to it the way the browser does,
 // then uninstalls it and checks nothing is left. Usage: node scripts/smoke-install.mjs <helper.cjs>
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { HOST_NAME, chromeProfileDir, hostManifestPath, makeTempHome, sendNative, writeSampleSession } from './lib/temp-home.mjs';
 
 const helper = resolve(process.argv[2] ?? '');
-const ids = JSON.parse(readFileSync(new URL('../packages/shared/src/extension-ids.json', import.meta.url), 'utf8'));
-const origin = `chrome-extension://${ids.dev}/`;
+const key = readFileSync(new URL('../packages/extension/dev-key.txt', import.meta.url), 'utf8').trim();
+const hex = createHash('sha256').update(Buffer.from(key, 'base64')).digest('hex').slice(0, 32);
+const devId = [...hex].map((c) => String.fromCharCode(97 + parseInt(c, 16))).join('');
+const origin = `chrome-extension://${devId}/`;
 const win = process.platform === 'win32';
 const regKey = `HKCU\\Software\\Google\\Chrome\\NativeMessagingHosts\\${HOST_NAME}`;
 

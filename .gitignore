@@ -12,3 +12,4 @@ playwright-report/
 .superpowers
 docs/superpowers
 packages/helper/release/
+packages/extension/dev-key.txt

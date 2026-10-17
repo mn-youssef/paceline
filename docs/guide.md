@@ -63,6 +63,7 @@ corepack enable
 git clone https://github.com/mn-youssef/paceline.git
 cd paceline
 pnpm install
+pnpm gen:dev-key
 pnpm build
 ```
 
@@ -79,7 +80,7 @@ This creates two things:
 3. Click **Load unpacked** and choose the folder `packages/extension/.output/chrome-mv3`.
 4. Pin Paceline to the toolbar: click the puzzle icon, then the pin next to Paceline.
 
-This build always gets the same extension ID, `cchmkmfoocjlfkogepngoklnehiofpco`. The key in `packages/extension/dev-key.txt` sets it, and the helper trusts this ID automatically.
+This build gets a unique extension ID from the local key in `packages/extension/dev-key.txt`. The key is ignored by Git and must not be shared. The helper derives the matching ID automatically, so an extension built from another checkout cannot impersonate this source installation.
 
 **3. Install the helper**
 

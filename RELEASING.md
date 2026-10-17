@@ -6,7 +6,7 @@ A release has two parts that must match: the **extension** on the Chrome Web Sto
 
 The helper only answers extension IDs it trusts. The Chrome Web Store gives the extension its ID when you first upload it, and you can't choose it. So the first release goes: draft upload → ID into the code → helper on npm → store review.
 
-The published helper trusts **only** the store extension. The development key in `packages/extension/dev-key.txt` is public, so anyone could give their own extension the dev ID. Source installs (`node packages/helper/dist/paceline.cjs install`) still trust the dev ID, because they use the development build in `dist/`. The npm package is built separately into `release/`.
+The published helper trusts **only** the store extension. Source installs use a per-checkout development key in `packages/extension/dev-key.txt`; it is generated locally with `pnpm gen:dev-key`, ignored by Git, and never included in the npm package. The development helper derives the trusted extension ID from that key.
 
 ## First release
 
